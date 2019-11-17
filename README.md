@@ -25,12 +25,12 @@ The following device types and data are supported:
 
 Each platform does not choose automatically which weather station's data to use. Selection of different identifiers is under configuration section of this document. Current version does not validate nor enforces configuration choices, but this is down the roadmap.
 
-For each platform, the location to use is determined according to the following hierarchy:
+For each platform, the location to use is determined according to the following list:
 
-  - `station_name`(#station_name) -  name of the station for current data (mandatory)
-  - `forecast_region_name`(#forecast_region_name) - name of the daily forecast region (mandatory)
-  - `forecast_text`(#forecast_text) - name of daily forecast text (mandatory)
-  - `forecast_station_name`(#forecast_station_name) - name of 7 days hourly forecast station (mandatory)
+  - [station_name](#station_name) -  name of the station for current data (mandatory)
+  - [forecast_region_name](#forecast_region_name) - name of the daily forecast region (mandatory)
+  - [forecast_text](#forecast_text) - name of daily forecast text (mandatory)
+  - [forecast_station_name](#forecast_station_name) - name of 7 days hourly forecast station (mandatory)
 
 ## Weather
 
@@ -51,28 +51,28 @@ weather:
 - The platform checks for new data every 20 minutes, and the source data is typically updated hourly within 10 minutes after the hour.
 - If no name is given, the weather entity will be named `weather.dhmz`.
 
-{% configuration %}
-name:
-  description: Name to be used for the entity ID, e.g. `weather.<name>`.
-  required: false
-  type: string
-station_name:
-  description: The station code of a specific weather station to use - see (#station_name)
-  required: true
-  type: string
-forecast_region_name:
-  description: The forecase region_name - see (#forecast_region_name)
-  required: true
-  type: string
-forecast_text:
-  description: The forecast text identifier - see ##forecast_text
-  required: true
-  type: string
-forecast_station_name:
-  description: The forecast station name - see ##forecast_station_name
-  required: true
-  type: string
-{% endconfiguration %}
+*Configuration*
+
+- name:
+  - description: Name to be used for the entity ID, e.g. `weather.<name>`.
+  - required: false
+  - type: string
+- station_name:
+  - description: The station code of a specific weather station to use - see (#station_name)
+  - required: true
+  - type: string
+- forecast_region_name:
+  - description: The forecase region_name - see (#forecast_region_name)
+  - required: true
+  - type: string
+- forecast_text:
+  - description: The forecast text identifier - see ##forecast_text
+  - required: true
+  - type: string
+- forecast_station_name:
+  - description: The forecast station name - see ##forecast_station_name
+  - required: true
+  - type: string
 
 ## Sensor
 
@@ -114,31 +114,31 @@ sensor:
     - `forecast_text_today` - A textual description of today's forecast
     - `forecast_text_tommorow` - A textual description of tommorow's forecast
 
-{% configuration %}
-name:
-  description: Name to be used for the entity ID, e.g. `sensor.<name>_temperature`.
-  required: false
-  type: string
-station_name:
-  description: The station code of a specific weather station to use - see (#station_name)
-  required: true
-  type: string
-forecast_region_name:
-  description: The forecase region_name - see (#forecast_region_name)
-  required: true
-  type: string
-forecast_text:
-  description: The forecast text identifier - see ##forecast_text
-  required: true
-  type: string
-forecast_station_name:
-  description: The forecast station name - see ##forecast_station_name
-  required: true
-  type: string
-monitored_conditions:
-  description: List of sensors to monitor, create in home assistant
-  required: true
-  type: list or
+*Configuration*
+- name:
+  - description: Name to be used for the entity ID, e.g. `sensor.<name>_temperature`.
+  - required: false
+  - type: string
+- station_name:
+  - description: The station code of a specific weather station to use - see (#station_name)
+  - required: true
+  - type: string
+- forecast_region_name:
+  - description: The forecase region_name - see (#forecast_region_name)
+  - required: true
+  - type: string
+- forecast_text:
+  - description: The forecast text identifier - see ##forecast_text
+  - required: true
+  - type: string
+- forecast_station_name:
+  - description: The forecast station name - see ##forecast_station_name
+  - required: true
+  - type: string
+- monitored_conditions:
+  - description: List of sensors to monitor, create in home assistant
+  - required: true
+  - type: list or
       - temperature
       - pressure
       - pressure_tendency
@@ -149,7 +149,6 @@ monitored_conditions:
       - precipitation
       - forecast_text_today
       - forecast_text_tommorow
-{% endconfiguration %}
 
 ## Camera
 
@@ -166,12 +165,12 @@ camera:
 
 - If no name is given, the camera entity will be named `camera.dhmz`.
 
-{% configuration %}
-name:
-  description: Name to be used for the entity ID, e.g. `camera.<name>`.
-  required: false
-  type: string
-{% endconfiguration %}
+*Configuration*
+
+- name:
+  - description: Name to be used for the entity ID, e.g. `camera.<name>`.
+  - required: false
+  - type: string
 
 
 ## station_name

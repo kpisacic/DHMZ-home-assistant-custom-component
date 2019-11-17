@@ -1,0 +1,52 @@
+
+# Configure a default setup of Home Assistant (frontend, api, etc)
+default_config:
+
+# Uncomment this if you are using SSL/TLS, running in Docker container, etc.
+# http:
+#   base_url: example.duckdns.org:8123
+
+# Text to speech
+tts:
+  - platform: google_translate
+
+group: !include groups.yaml
+automation: !include automations.yaml
+script: !include scripts.yaml
+
+logger:
+  default: info
+  logs:
+    custom_components.dhmz: debug
+
+sensor:
+  - platform: dhmz
+    name: DHMZ Sensor Maksimir
+    station_name: Zagreb-Maksimir
+    forecast_region_name: Zagreb
+    forecast_text: zg_text
+    forecast_station_name: Zagreb_Maksimir
+    monitored_conditions:
+      - temperature
+      - pressure
+      - pressure_tendency
+      - humidity
+      - wind_speed
+      - wind_bearing
+      - condition
+      - precipitation
+      - forecast_text_today
+      - forecast_text_tommorow
+
+weather:
+  - platform: dhmz
+    name: DHMZ Maksimir
+    station_name: Zagreb-Maksimir
+    forecast_region_name: Zagreb
+    forecast_text: zg_text
+    forecast_station_name: Zagreb_Maksimir
+
+camera:
+  - platform: dhmz
+    name: DHMZ Radar
+

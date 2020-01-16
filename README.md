@@ -1,29 +1,19 @@
 # DHMZ-home-assistant-custom-component
 Home Assistant Custom Components for DHMZ weather service ("Državni hidrometeorološki zavod Republike Hrvatske" / "Croatian Meteorological and Hydrological Service")
 
----
-title: "DHMZ"
-description: "Weather data from DHMZ service."
-logo: dhmz.svg
-ha_category:
-  - Weather
-  - Sensor
-  - Camera
-ha_release: 0.99
-ha_iot_class: Cloud Polling
----
-
 The `dhmz` weather platform provide meteorological data for DHMZ service ("Državni hidrometeorološki zavod Republike Hrvatske / "Croatian Meteorological and Hydrological Service") - https://meteo.hr/ . Data from DHMZ is listed on https://meteo.hr/proizvodi.php?section=podaci&param=xml_korisnici and provided under Open Licence of Republic of Croatia - https://data.gov.hr/otvorena-dozvola and https://data.gov.hr/open-licence-republic-croatia .
+Custom weather card is also included in the package, combining graphical forecast data in weather card.
 
 The following device types and data are supported:
 
 - [Weather](#weather) - Current conditions and forecasts
 - [Sensor](#sensor) - Current conditions and alerts
 - [Camera](#camera) - Radar imagery
+- [Custom Card](#custom_card) - Custom lovelace card
 
 ## Location Selection
 
-Each platform does not choose automatically which weather station's data to use. Selection of different identifiers is under configuration section of this document. Current version does not validate nor enforces configuration choices, but this is down the roadmap.
+Each platform does not choose automatically which weather station's data to use. Selection of different identifiers is under configuration section of this document. Current version does not validate nor enforces configuration choices, but this is down the development roadmap.
 
 For each platform, the location to use is determined according to the following list:
 
@@ -154,7 +144,7 @@ sensor:
 
 The `dhmz` camera platform displays DHMZ [radar imagery].
 
-To add Environment Canada radar imagery to your installation, add the desired lines from the following example to your `configuration.yaml` file:
+To add DHMZ radar imagery to your installation, add the desired lines from the following example to your `configuration.yaml` file:
 
 ```yaml
 # Example configuration.yaml entry
@@ -164,6 +154,30 @@ camera:
 ```
 
 - If no name is given, the camera entity will be named `camera.dhmz`.
+
+## Custom card
+
+To add custom card for DHMZ weather, add following to your lovelace configuration YAML file:
+
+1. Under resources section add custom card definition 
+
+```yaml
+resources:
+  - type: js
+    url: /local/dhmz-weather-card.js
+```
+
+2. In views and cards section add following card
+
+```yaml
+    cards:
+      - mode: hourly
+        type: 'custom:dhmz-weather-card'
+        weather: weather.dhmz_maksimir
+```
+
+With `weather` attribute you should state name of the entity configured in weather compontent.
+For mode, please use `daily` or `hourly`, since `hourly` was mostly customized and tested and is preffered to be used.
 
 *Configuration*
 

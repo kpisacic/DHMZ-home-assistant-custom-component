@@ -52,7 +52,7 @@ CONDITION_CLASSES = {
     "sunny": ["1"],
     "windy": [],
     "windy-variant": [],
-    "exceptional": [],
+    "exceptional": ["-"],
 }
 
 WIND_MAPPING = {
@@ -177,10 +177,13 @@ class DhmzWeather(WeatherEntity):
         """Return the state attributes."""
         ret = {
             "condition": self.dhmz_data.get_data(SENSOR_TYPES["condition"][4]),
+            "weather_symbol": self.dhmz_data.get_data(SENSOR_TYPES["weather_symbol"][4]),
             ATTR_STATION: self.dhmz_data.get_data(SENSOR_TYPES["station_name"][4]),
             ATTR_UPDATED: self.dhmz_data.last_update.isoformat(),
             "pressure_tendency": self.dhmz_data.get_data(SENSOR_TYPES["pressure_tendency"][4]) + " hPa",
             "precipitation": self.dhmz_data.get_data(SENSOR_TYPES["precipitation"][4]) if self.dhmz_data.get_data(SENSOR_TYPES["precipitation"][4]) else "0" + " mm/24h",
+            "forecast_today": self.dhmz_data.get_data(SENSOR_TYPES["forecast_text_today"][4]),
+            "forecast_tommorow": self.dhmz_data.get_data(SENSOR_TYPES["forecast_text_tommorow"][4]),
         }
         return(ret)
 
@@ -207,7 +210,7 @@ class DhmzWeather(WeatherEntity):
     @property
     def wind_speed(self):
         """Return the wind speed."""
-        return round(float(self.dhmz_data.get_data(SENSOR_TYPES[ATTR_WEATHER_WIND_SPEED][4]))*3.6,2)
+        return float(self.dhmz_data.get_data(SENSOR_TYPES[ATTR_WEATHER_WIND_SPEED][4]))
 
     @property
     def wind_bearing(self):
@@ -218,18 +221,18 @@ class DhmzWeather(WeatherEntity):
     def forecast(self):
         """Return the forecast."""
         ret = []
-        for entry in self.dhmz_data.get_forecast_daily():
-            elem = {
-                ATTR_FORECAST_TIME: entry.get("datetime"),
-                ATTR_FORECAST_TEMP: float(entry.get("Tmx")),
-                ATTR_FORECAST_TEMP_LOW: float(entry.get("Tmn")),
-                ATTR_FORECAST_WIND_SPEED: WIND_MAPPING[int(entry.get("wind"))][1],
-                ATTR_FORECAST_WIND_BEARING: WIND_MAPPING[int(entry.get("wind"))][0],
-                ATTR_FORECAST_CONDITION: [ k for k, v in CONDITION_CLASSES.items() if entry.get("vrijeme") in v ][0],
-                "entity_picture": "https://meteo.hr/assets/images/icons/{0}.svg".format(entry.get("vrijeme")),
-                "condition_description": entry.get("text"),
-            }
-            ret.append(elem)
+        # for entry in self.dhmz_data.get_forecast_daily():
+        #     elem = {
+        #         ATTR_FORECAST_TIME: entry.get("datetime"),
+        #         ATTR_FORECAST_TEMP: float(entry.get("Tmx")),
+        #         ATTR_FORECAST_TEMP_LOW: float(entry.get("Tmn")),
+        #         ATTR_FORECAST_WIND_SPEED: WIND_MAPPING[int(entry.get("wind"))][1],
+        #         ATTR_FORECAST_WIND_BEARING: WIND_MAPPING[int(entry.get("wind"))][0],
+        #         ATTR_FORECAST_CONDITION: [ k for k, v in CONDITION_CLASSES.items() if entry.get("vrijeme") in v ][0],
+        #         "weather_symbol": entry.get("vrijeme"),
+        #         "condition_description": entry.get("text"),
+        #     }
+        #     ret.append(elem)
 
         for entry in self.dhmz_data.get_forecast_hourly():
             if entry.get("datetime") > datetime.now():
@@ -240,7 +243,7 @@ class DhmzWeather(WeatherEntity):
                     ATTR_FORECAST_WIND_SPEED: WIND_SPEED_MAPPING[int(entry.get("wind")[-1:])],
                     ATTR_FORECAST_WIND_BEARING: entry.get("wind")[:-1],
                     ATTR_FORECAST_CONDITION: [ k for k, v in CONDITION_CLASSES.items() if entry.get("vrijeme") in v ][0],
-                    "entity_picture": "https://meteo.hr/assets/images/icons/{0}.svg".format(entry.get("vrijeme")),
+                    "weather_symbol": entry.get("vrijeme"),
                 }
                 ret.append(elem)
         

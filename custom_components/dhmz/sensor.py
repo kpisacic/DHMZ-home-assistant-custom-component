@@ -44,6 +44,13 @@ CONF_FORECAST_STATION_NAME = "forecast_station_name"
 
 DEFAULT_NAME = "dhmz"
 
+CURRENT_SITUATION_API_URL = "https://vrijeme.hr/hrvatska_n.xml"
+PRECIPITATION_API_URL = "https://vrijeme.hr/oborina.xml"
+FORECAST_TODAY_API_URL = "https://prognoza.hr/prognoza_danas.xml"
+FORECAST_TOMMOROW_API_URL = "https://prognoza.hr/prognoza_sutra.xml"
+FORECAST_3DAYS_API_URL = "https://prognoza.hr/tri/3d_graf_i_simboli.xml"
+FORECAST_7DAYS_API_URL = "https://prognoza.hr/sedam/hrvatska/7d_meteogrami.xml"
+
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=15)
 
 SENSOR_TYPES = {
@@ -153,7 +160,10 @@ class DhmzSensor(Entity):
     @property
     def state(self):
         """Return the state of the sensor."""
-        return self.probe.get_data(SENSOR_TYPES[self.variable][4])
+        if (self.variable == "forecast_text_today") or (self.variable == "forecast_text_tommorow"):
+            return self.probe.get_data(SENSOR_TYPES[self.variable][4])[:255]
+        else:
+            return self.probe.get_data(SENSOR_TYPES[self.variable][4])
 
     @property
     def unit_of_measurement(self):
@@ -190,13 +200,6 @@ class DhmzSensor(Entity):
 
 class DhmzData:
     """The class for handling the data retrieval."""
-
-    CURRENT_SITUATION_API_URL = "https://vrijeme.hr/hrvatska_n.xml"
-    PRECIPITATION_API_URL = "https://vrijeme.hr/oborina.xml"
-    FORECAST_TODAY_API_URL = "https://prognoza.hr/prognoza_danas.xml"
-    FORECAST_TOMMOROW_API_URL = "https://prognoza.hr/prognoza_sutra.xml"
-    FORECAST_3DAYS_API_URL = "https://prognoza.hr/tri/3d_graf_i_simboli.xml"
-    FORECAST_7DAYS_API_URL = "https://prognoza.hr/sedam/hrvatska/7d_meteogrami.xml"
 
     _station_name = ""
     _forecast_region_name = ""
@@ -237,7 +240,7 @@ class DhmzData:
             _LOGGER.debug("Refreshing current_situation - hrvatska_n.xml")
             elems = []
             # get current weather "hrvatska_n.xml"
-            tree = etree.parse(urlopen(self.CURRENT_SITUATION_API_URL))
+            tree = etree.parse(urlopen(CURRENT_SITUATION_API_URL))
             elems = tree.xpath("//Hrvatska/Grad[GradIme='" + self._station_name + "']/Podatci/*")
             elem_lat = tree.xpath("//Hrvatska/Grad[GradIme='" + self._station_name + "']/Lat")
             elem_lon = tree.xpath("//Hrvatska/Grad[GradIme='" + self._station_name + "']/Lon")
@@ -251,7 +254,7 @@ class DhmzData:
 
             _LOGGER.debug("Refreshing current_situation - oborine.xml")
             # get percipitation "oborine.xml"
-            tree = etree.parse(urlopen(self.PRECIPITATION_API_URL))
+            tree = etree.parse(urlopen(PRECIPITATION_API_URL))
             elem_kisa = tree.xpath("//dnevna_oborina/grad[ime='" + self._station_name + "']/kolicina")
             if elem_kisa: 
                 elems.extend(elem_kisa)
@@ -278,7 +281,7 @@ class DhmzData:
             ret = []
             elems = {}
             # get "prognoza_danas.xml"
-            tree = etree.parse(urlopen(self.FORECAST_TODAY_API_URL))
+            tree = etree.parse(urlopen(FORECAST_TODAY_API_URL))
             val_condition = tree.xpath("//VW/section/station[@name='" + self._forecast_region_name + "']/param[@name='vrijeme']/@value")[0]
             val_temp_min = tree.xpath("//VW/section/station[@name='" + self._forecast_region_name + "']/param[@name='Tmn']/@value")[0]
             val_temp_max = tree.xpath("//VW/section/station[@name='" + self._forecast_region_name + "']/param[@name='Tmx']/@value")[0]
@@ -296,7 +299,7 @@ class DhmzData:
             _LOGGER.debug("Refreshing forecast_daily - prognoza_sutra.xml")
             elems_tm = {}
             # get "prognoza_sutra.xml"
-            tree = etree.parse(urlopen(self.FORECAST_TOMMOROW_API_URL))
+            tree = etree.parse(urlopen(FORECAST_TOMMOROW_API_URL))
             val_condition = tree.xpath("//VW/section/station[@name='" + self._forecast_region_name + "']/param[@name='vrijeme']/@value")[0]
             val_temp_min = tree.xpath("//VW/section/station[@name='" + self._forecast_region_name + "']/param[@name='Tmn']/@value")[0]
             val_temp_max = tree.xpath("//VW/section/station[@name='" + self._forecast_region_name + "']/param[@name='Tmx']/@value")[0]
@@ -329,7 +332,7 @@ class DhmzData:
             ret = []
             _LOGGER.debug("Refreshing forecast_hourly - 7d_meteogrami.xml")
             # get forecast weather "7d_meteogrami.xml"
-            tree = etree.parse(urlopen(self.FORECAST_7DAYS_API_URL))
+            tree = etree.parse(urlopen(FORECAST_7DAYS_API_URL))
             node_days = tree.xpath("//sedmodnevna_aliec/grad[@lokacija='" + self._forecast_station_name + "']/*")
             for node in node_days:
                 elems = {}
@@ -368,8 +371,8 @@ class DhmzData:
 
         self._forecast_daily = self.forecast_daily()
         if self._forecast_daily:
-            self._data["PrognozaDanas"] = self._forecast_daily[0]["text"][:255]
-            self._data["PrognozaSutra"] = self._forecast_daily[1]["text"][:255]
+            self._data["PrognozaDanas"] = self._forecast_daily[0]["text"]
+            self._data["PrognozaSutra"] = self._forecast_daily[1]["text"]
 
         self._forecast_hourly = self.forecast_hourly()
 
@@ -391,24 +394,18 @@ class DhmzData:
         """Get the data."""
         return self._forecast_hourly
 
-def _get_dhmz_stations():
+def get_dhmz_stations():
     """Return {CONF_STATION: (lat, lon)} for all stations, for auto-config."""
-    # capital_stations = {r["Station"] for r in DhmzData.current_situation()}
-    # req = requests.get(
-    #     "https://www.zamg.ac.at/cms/en/documents/climate/"
-    #     "doc_metnetwork/zamg-observation-points",
-    #     timeout=15,
-    # )
-    stations = {}
-    # for row in csv.DictReader(req.text.splitlines(), delimiter=";", quotechar='"'):
-    #     if row.get("synnr") in capital_stations:
-    #         try:
-    #             stations[row["synnr"]] = tuple(
-    #                 float(row[coord].replace(",", "."))
-    #                 for coord in ["breite_dezi", "länge_dezi"]
-    #             )
-    #         except KeyError:
-    #             _LOGGER.error("ZAMG schema changed again, cannot autodetect station")
+
+    stations={}
+    tree = etree.parse(urlopen(CURRENT_SITUATION_API_URL))
+    elems = tree.xpath("//Hrvatska/Grad")
+    for elem in elems:
+        ime = elem.xpath("GradIme")[0]
+        lon = elem.xpath("Lon")[0]
+        lat = elem.xpath("Lat")[0]
+        stations[ime.text] = (float(lat.text), float(lon.text))
+
     return stations
 
 
@@ -420,7 +417,7 @@ def dhmz_stations(cache_dir):
     """
     cache_file = os.path.join(cache_dir, ".zamg-stations.json.gz")
     if not os.path.isfile(cache_file):
-        stations = _get_dhmz_stations()
+        stations = get_dhmz_stations()
         with gzip.open(cache_file, "wt") as cache:
             json.dump(stations, cache, sort_keys=True)
         return stations

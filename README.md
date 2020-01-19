@@ -11,6 +11,18 @@ The following device types and data are supported:
 - [Camera](#camera) - Radar imagery
 - [Custom Card](#custom_card) - Custom lovelace card
 
+## Installation
+
+*Manual installation*
+- Copy `dhmz`  folder in `custom_components` from repository to your Home Assistant configuration `custom_components` folder
+- CAREFUL
+
+*HACS installation*
+
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
+
+- Use HACS custom repository (not default) - (https://github.com/kpisacic/DHMZ-home-assistant-custom-component)
+
 ## Location Selection
 
 Each platform does not choose automatically which weather station's data to use. Selection of different identifiers is under configuration section of this document. Current version does not validate nor enforces configuration choices, but this is down the development roadmap.

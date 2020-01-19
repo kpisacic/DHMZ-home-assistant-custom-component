@@ -15,7 +15,7 @@ The following device types and data are supported:
 
 *Manual installation*
 - Copy `dhmz`  folder in `custom_components` from repository to your Home Assistant configuration `custom_components` folder
-- CAREFUL
+- CAREFUL not to copy other files in the configuration folder and overwrite your YAML files
 
 *HACS installation*
 

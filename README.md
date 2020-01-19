@@ -170,6 +170,14 @@ camera:
 
 - If no name is given, the camera entity will be named `camera.dhmz`.
 
+*Configuration*
+
+- name:
+  - description: Name to be used for the entity ID, e.g. `camera.<name>`.
+  - required: false
+  - type: string
+
+
 ## Custom card
 
 To add custom card for DHMZ weather, add following to your lovelace configuration YAML file:
@@ -193,14 +201,6 @@ resources:
 
 With `weather` attribute you should state name of the entity configured in weather compontent.
 For mode, please use `daily` or `hourly`, since `hourly` was mostly customized and tested and is preffered to be used.
-
-*Configuration*
-
-- name:
-  - description: Name to be used for the entity ID, e.g. `camera.<name>`.
-  - required: false
-  - type: string
-
 
 ## station_name
 

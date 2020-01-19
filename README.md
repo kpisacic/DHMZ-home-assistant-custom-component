@@ -9,7 +9,7 @@ The following device types and data are supported:
 - [Weather](#weather) - Current conditions and forecasts
 - [Sensor](#sensor) - Current conditions and alerts
 - [Camera](#camera) - Radar imagery
-- [Custom Weather Card](#custom) - Custom lovelace card with 5-days forecast and DHMZ specifics
+- [Custom Weather Card](#custom-card) - Custom lovelace card with 5-days forecast and DHMZ specifics
 
 ## Installation
 

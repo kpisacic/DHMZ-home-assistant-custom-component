@@ -9,19 +9,22 @@ The following device types and data are supported:
 - [Weather](#weather) - Current conditions and forecasts
 - [Sensor](#sensor) - Current conditions and alerts
 - [Camera](#camera) - Radar imagery
-- [Custom Card](#custom_card) - Custom lovelace card
+- [Custom Weather Card](#custom) - Custom lovelace card with 5-days forecast and DHMZ specifics
 
 ## Installation
 
+There are two options; manual or HACS installation:
+
 *Manual installation*
-- Copy `dhmz`  folder in `custom_components` from repository to your Home Assistant configuration `custom_components` folder
-- CAREFUL not to copy other files in the configuration folder and overwrite your YAML files
+- Copy `dhmz`  folder in `custom_components` from repository to your Home Assistant configuration `custom_components` folder. Don't copy any other YAML files from repository root not to overwrite your own configuration.
+- Copy `dhmz-weather-card.js` from `www` repocitory folder to your Home Assistant configuration `www` folder
 
 *HACS installation*
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
 
 - Use HACS custom repository (not default) - (https://github.com/kpisacic/DHMZ-home-assistant-custom-component)
+- Copy `dhmz-weather-card.js` from `www` repocitory folder to your Home Assistant configuration `www` folder
 
 ## Location Selection
 

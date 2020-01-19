@@ -1,7 +1,7 @@
 {
-    "name": "DHMZ - Croatian weathee service component and card",
+    "name": "DHMZ - Croatian weather service component and card",
     "render_readme": true,
     "domains": ["sensor","weather","camera"],
-    "country": ["NO", "SE", "DK"],
+    "country": ["HR"],
     "homeassistant": "0.99.0"
 }

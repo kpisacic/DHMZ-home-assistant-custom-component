@@ -37,19 +37,20 @@ class DhmzWeatherCard extends Polymer.Element {
           }
           .condition {
             display: flex;
-            align-items: right;
             justify-content: space-between;
             font-size: 24px;
             font-weight: 350;
+            padding-left: 10px;
           }
-          .main ha-icon {
+         .main ha-icon {
             --iron-icon-height: 74px;
             --iron-icon-width: 74px;
             margin-right: 20px;
+            background-repeat: no-repeat;
+            background-position: center center;
           }
           .main div {
             cursor: pointer;
-            margin-top: -11px;
           }
           .main sup {
             font-size: 32px;
@@ -71,15 +72,15 @@ class DhmzWeatherCard extends Polymer.Element {
             margin: 0px 3px 0px 10px;
           }
           .conditions ha-icon {
-            --iron-icon-height: 28px;
-            --iron-icon-width: 28px;
+            --iron-icon-height: 20px;
+            --iron-icon-width: 20px;
             margin-right: 1px;
           }
           .forecast_text {
             display: flex;
             align-items: left;
             justify-content: space-between;
-            margin: 10px 0px 10px 0px;
+            margin: 5px 0px 5px 0px;
           }
           .forecast_text .label {
             display: flex;
@@ -122,7 +123,8 @@ class DhmzWeatherCard extends Polymer.Element {
                 <ha-icon icon="hass:weather-windy"></ha-icon> [[weatherObj.attributes.wind_speed]] [[ll('uSpeed')]]
               </div>
             </div>
-            <div class="forecast_text"><div class="label">Today:</div><div class="text">[[weatherObj.attributes.forecast_today]]</div></div>
+            <div class="forecast_text"><div class="label">Danas:</div></div>
+            <div class="forecast_text"><div class="text">[[weatherObj.attributes.forecast_today]]</div></div>
             <ha-chart-base data="[[ChartData]]"></ha-chart-base>
             <div class="conditions">
               <template is="dom-repeat" items="[[forecast]]">
@@ -131,7 +133,8 @@ class DhmzWeatherCard extends Polymer.Element {
                 </div>
               </template>
             </div>
-            <div class="forecast_text"><div class="label">Tommorow:</div><div class="text">[[weatherObj.attributes.forecast_tommorow]]</div></div>
+            <div class="forecast_text"><div class="label">Sutra:</div></div>
+            <div class="forecast_text"><div class="text">[[weatherObj.attributes.forecast_tommorow]]</div></div>
           </div>
         </ha-card>
       `;
@@ -278,7 +281,7 @@ class DhmzWeatherCard extends Polymer.Element {
               yAxisID: 'TempAxis',
               borderWidth: 2.0,
               lineTension: 0.4,
-              pointRadius: 0.0,
+              pointRadius: 1.0,
               pointHitRadius: 5.0,
               fill: false,
             },
@@ -289,7 +292,7 @@ class DhmzWeatherCard extends Polymer.Element {
               yAxisID: 'TempAxis',
               borderWidth: 2.0,
               lineTension: 0.4,
-              pointRadius: 0.0,
+              pointRadius: 1.0,
               pointHitRadius: 5.0,
               fill: false,
             },

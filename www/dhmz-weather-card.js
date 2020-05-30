@@ -43,6 +43,8 @@ class DhmzWeatherCard extends Polymer.Element {
             padding-left: 10px;
           }
          .main ha-icon {
+            height: 74px;
+            width: 74px;
             --iron-icon-height: 74px;
             --iron-icon-width: 74px;
             margin-right: 20px;
@@ -72,9 +74,14 @@ class DhmzWeatherCard extends Polymer.Element {
             margin: 0px 3px 0px 10px;
           }
           .conditions ha-icon {
+            height: 20px;
+            width: 20px;
             --iron-icon-height: 20px;
             --iron-icon-width: 20px;
             margin-right: 1px;
+            margin-left: 0px;
+            background-repeat: no-repeat;
+            background-position: center bottom;
           }
           .forecast_text {
             display: flex;
@@ -128,9 +135,7 @@ class DhmzWeatherCard extends Polymer.Element {
             <ha-chart-base data="[[ChartData]]"></ha-chart-base>
             <div class="conditions">
               <template is="dom-repeat" items="[[forecast]]">
-                <div>
-                  <ha-icon style="background-image: url(https://meteo.hr/assets/images/icons/[[item.weather_symbol]].svg)"></ha-icon>
-                </div>
+                <ha-icon class="conditions" style="background-image: url(https://meteo.hr/assets/images/icons/[[item.weather_symbol]].svg)"></ha-icon>
               </template>
             </div>
             <div class="forecast_text"><div class="label">Sutra:</div></div>

@@ -2,7 +2,7 @@
   "domain": "dhmz",
   "name": "DHMZ Croatia",
   "documentation": "https://www.home-assistant.io/integrations/dhmz",
-  "requirements": [],
+  "requirements": ["lxml>=4.0.0"],
   "dependencies": [],
   "codeowners": [
     "@kpisacic"

@@ -132,7 +132,7 @@ class DhmzWeatherCard extends Polymer.Element {
             </div>
             <div class="forecast_text"><div class="label">Danas:</div></div>
             <div class="forecast_text"><div class="text">[[weatherObj.attributes.forecast_today]]</div></div>
-            <ha-chart-base data="[[ChartData]]"></ha-chart-base>
+            <ha-chart-base hass="[[_hass]]" data="[[ChartData]]"></ha-chart-base>
             <div class="conditions">
               <template is="dom-repeat" items="[[forecast]]">
                 <ha-icon class="conditions" style="background-image: url(https://meteo.hr/assets/images/icons/[[item.weather_symbol]].svg)"></ha-icon>

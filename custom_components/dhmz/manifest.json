@@ -1,6 +1,7 @@
 {
   "domain": "dhmz",
   "name": "DHMZ Croatia",
+  "version": "2021.03.1",
   "documentation": "https://www.home-assistant.io/integrations/dhmz",
   "requirements": ["lxml>=4.0.0"],
   "dependencies": [],

@@ -12,7 +12,6 @@ from homeassistant.components.weather import (
     ATTR_WEATHER_HUMIDITY,
     ATTR_WEATHER_PRESSURE,
     ATTR_WEATHER_WIND_SPEED,
-    ATTR_WEATHER_ATTRIBUTION,
     ATTR_WEATHER_TEMPERATURE,
     ATTR_WEATHER_WIND_BEARING,
     ATTR_FORECAST_TIME,
@@ -35,7 +34,6 @@ ATTR_STATION = "station"
 ATTR_REGION = "region"
 ATTR_FORECAST_TEXT = "forecast_text"
 ATTR_UPDATED = "updated"
-ATTRIBUTION = "Data provided by DHMZ"
 
 CONF_STATION_NAME = "station_name"
 CONF_FORECAST_REGION_NAME = "forecast_region_name"
@@ -174,7 +172,6 @@ class DhmzSensor(Entity):
     def device_state_attributes(self):
         """Return the state attributes."""
         ret = {
-            ATTR_WEATHER_ATTRIBUTION: ATTRIBUTION,
             ATTR_STATION: self.probe.get_data(SENSOR_TYPES["station_name"][4]),
         }
         if self.variable == "precipitation":

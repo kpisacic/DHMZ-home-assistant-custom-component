@@ -25,7 +25,6 @@ from homeassistant.helpers import config_validation as cv
 
 # Reuse data and API logic from the sensor implementation
 from .sensor import (
-    ATTRIBUTION,
     DEFAULT_NAME,
     CONF_STATION_NAME,
     CONF_FORECAST_REGION_NAME,
@@ -170,7 +169,7 @@ class DhmzWeather(WeatherEntity):
     @property
     def attribution(self):
         """Return the attribution."""
-        return ATTRIBUTION
+        return "Data provided by DHMZ"
 
     @property
     def device_state_attributes(self):

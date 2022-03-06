@@ -172,7 +172,7 @@ class DhmzWeather(WeatherEntity):
         return "Data provided by DHMZ"
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the state attributes."""
         ret = {
             "condition": self.dhmz_data.get_data(SENSOR_TYPES["condition"][4]),

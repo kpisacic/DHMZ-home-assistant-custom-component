@@ -169,7 +169,7 @@ class DhmzSensor(Entity):
         return SENSOR_TYPES[self.variable][1]
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the state attributes."""
         ret = {
             ATTR_STATION: self.probe.get_data(SENSOR_TYPES["station_name"][4]),

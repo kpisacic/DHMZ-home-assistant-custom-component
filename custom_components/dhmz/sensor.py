@@ -53,24 +53,24 @@ MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=15)
 
 SENSOR_TYPES = {
     # from "hrvatska_n.xml"
-    ATTR_WEATHER_PRESSURE: ("Pressure", "hPa", "Stat hPa", float, "Tlak", ["pressure_tendency"], "mdi:thermometer-lines"),
-    "pressure_tendency": ("Pressure Tendency", "hPa", "Delta hPa", float, "TlakTend", [], "mdi:thermometer-plus"),
-    ATTR_WEATHER_HUMIDITY: ("Humidity", "%", "RF %", int, "Vlaga", [], "mdi:water-percent"),
-    ATTR_WEATHER_WIND_SPEED: ("Wind Speed", "m/s", "WS m/s", float, "VjetarBrzina", [], "mdi:weather-windy"),
-    ATTR_WEATHER_WIND_BEARING: ("Wind Bearing", "°", "WD °", int, "VjetarSmjer", [], "mdi:compass"),
-    ATTR_WEATHER_TEMPERATURE: ("Temperature", "°C", "T °C", float, "Temp", [], "mdi:thermometer"),
-	"condition": ("Condition", None, "Type", str, "Vrijeme", ["weather_symbol"], ""),
-	"weather_symbol": ("Weather Symbol", None, "Symbol", int, "VrijemeZnak", [], ""),
-    "station_name": ("Station Name", None, "Station", str, "GradIme", [], "mdi:map-marker"),
-    "lon": ("Longitude", "°", "Long °", float, "Lon", [], "mdi:longitude"),
-    "lat": ("Latitude", "°", "Latt °", float, "Lat", [], "mdi:latitude"),
-    "update_timestamp": ("Update Timestamp", None, "Update", str, "Timestamp", [], "mdi:update"),
+    ATTR_WEATHER_PRESSURE: ("Pressure", "hPa", "Stat hPa", float, "Tlak", ["pressure_tendency"], "mdi:thermometer-lines", "pressure", "measurement"),
+    "pressure_tendency": ("Pressure Tendency", "hPa", "Delta hPa", float, "TlakTend", [], "mdi:thermometer-plus", "pressure", "measurement"),
+    ATTR_WEATHER_HUMIDITY: ("Humidity", "%", "RF %", int, "Vlaga", [], "mdi:water-percent", "humidity", "measurement"),
+    ATTR_WEATHER_WIND_SPEED: ("Wind Speed", "m/s", "WS m/s", float, "VjetarBrzina", [], "mdi:weather-windy", "", "measurement"),
+    ATTR_WEATHER_WIND_BEARING: ("Wind Bearing", "°", "WD °", int, "VjetarSmjer", [], "mdi:compass", "", "measurement"),
+    ATTR_WEATHER_TEMPERATURE: ("Temperature", "°C", "T °C", float, "Temp", [], "mdi:thermometer", "temperature", "measurement"),
+	"condition": ("Condition", None, "Type", str, "Vrijeme", ["weather_symbol"], "", "", ""),
+	"weather_symbol": ("Weather Symbol", None, "Symbol", int, "VrijemeZnak", [], "", "", ""),
+    "station_name": ("Station Name", None, "Station", str, "GradIme", [], "mdi:map-marker", "", ""),
+    "lon": ("Longitude", "°", "Long °", float, "Lon", [], "mdi:longitude", "", ""),
+    "lat": ("Latitude", "°", "Latt °", float, "Lat", [], "mdi:latitude", "", ""),
+    "update_timestamp": ("Update Timestamp", None, "Update", str, "Timestamp", [], "mdi:update", "timestamp", ""),
     # from "oborine.xml"
-    "precipitation": ("Precipitation", "mm", "mm/24h", float, "kolicina", ["precipitation_update_timestamp"], "mdi:weather-pouring"),
-    "precipitation_update_timestamp": ("Precipitation Update Timestamp", None, "Update", str, "kolicina_timestamp", [], "mdi:update"),
+    "precipitation": ("Precipitation", "mm", "mm/24h", float, "kolicina", ["precipitation_update_timestamp"], "mdi:weather-pouring", "", "measurement"),
+    "precipitation_update_timestamp": ("Precipitation Update Timestamp", None, "Update", str, "kolicina_timestamp", [], "mdi:update", "timestamp", ""),
     # forecast texts
-    "forecast_text_today": ("Today forecast", "", "", str, "PrognozaDanas", [], "mdi:calendar-today"),
-    "forecast_text_tommorow": ("Today forecast", "", "", str, "PrognozaSutra", [], "mdi:calendar-blank"),
+    "forecast_text_today": ("Today forecast", "", "", str, "PrognozaDanas", [], "mdi:calendar-today", "", ""),
+    "forecast_text_tommorow": ("Today forecast", "", "", str, "PrognozaSutra", [], "mdi:calendar-blank", "", ""),
 }
 
 FORECAST_DAILY_TYPES = {
@@ -162,6 +162,16 @@ class DhmzSensor(Entity):
             return self.probe.get_data(SENSOR_TYPES[self.variable][4])[:255]
         else:
             return self.probe.get_data(SENSOR_TYPES[self.variable][4])
+
+    @property
+    def device_class(self):
+        """Return the device_class of this entity, if any."""
+        return SENSOR_TYPES[self.variable][7]
+
+    @property
+    def state_class(self):
+        """Return the state_class of this entity, if any."""
+        return SENSOR_TYPES[self.variable][8]
 
     @property
     def unit_of_measurement(self):

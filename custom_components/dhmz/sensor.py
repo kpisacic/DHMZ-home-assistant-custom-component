@@ -280,6 +280,8 @@ class DhmzData:
             _LOGGER.error("LXML PARSE error: %s at position: %s", err.message, err.position )
         except etree.ParserError as err:
             _LOGGER.error("LXML PARSER error: %s", err.message )
+        except etree.XMLSyntaxError as err:
+            _LOGGER.error("LXML XML SYNTAX error: %s as position: %s, offset: %s, line: %s", err.message, err.position, err.position, err.lineno )
 
     def forecast_daily(self):
         """Fetch and parse the latest daily forecast XML data."""
@@ -332,6 +334,8 @@ class DhmzData:
             _LOGGER.error("LXML PARSE error: %s at position: %s", err.message, err.position )
         except etree.ParserError as err:
             _LOGGER.error("LXML PARSER error: %s", err.message )
+        except etree.XMLSyntaxError as err:
+            _LOGGER.error("LXML XML SYNTAX error: %s as position: %s, offset: %s, line: %s", err.message, err.position, err.position, err.lineno )
 
     def forecast_hourly(self):
         """Fetch and parse the latest daily forecast XML data."""
@@ -361,6 +365,8 @@ class DhmzData:
             _LOGGER.error("LXML PARSE error: %s at position: %s", err.message, err.position )
         except etree.ParserError as err:
             _LOGGER.error("LXML PARSER error: %s", err.message )
+        except etree.XMLSyntaxError as err:
+            _LOGGER.error("LXML XML SYNTAX error: %s as position: %s, offset: %s, line: %s", err.message, err.position, err.position, err.lineno )
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):

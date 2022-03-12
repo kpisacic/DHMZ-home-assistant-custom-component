@@ -189,7 +189,13 @@ class DhmzWeather(WeatherEntity):
     @property
     def temperature(self):
         """Return the platform temperature."""
-        return float(self.dhmz_data.get_data(SENSOR_TYPES[ATTR_WEATHER_TEMPERATURE][4]))
+        try:
+            s_val = self.dhmz_data.get_data(SENSOR_TYPES[ATTR_WEATHER_TEMPERATURE][4]) or ""
+            f_ret = float(s_val)
+        except ValueError:
+            _LOGGER.warning("Temperature - value not float: %s", s_val )
+            f_ret = 0
+        return f_ret
 
     @property
     def temperature_unit(self):
@@ -199,17 +205,35 @@ class DhmzWeather(WeatherEntity):
     @property
     def pressure(self):
         """Return the pressure."""
-        return float(self.dhmz_data.get_data(SENSOR_TYPES[ATTR_WEATHER_PRESSURE][4]))
+        try:
+            s_val = self.dhmz_data.get_data(SENSOR_TYPES[ATTR_WEATHER_PRESSURE][4]) or ""
+            f_ret = float(s_val)
+        except ValueError:
+            _LOGGER.warning("Pressure - value not float: %s", s_val )
+            f_ret = 0
+        return f_ret
 
     @property
     def humidity(self):
         """Return the humidity."""
-        return float(self.dhmz_data.get_data(SENSOR_TYPES[ATTR_WEATHER_HUMIDITY][4]))
+        try:
+            s_val = self.dhmz_data.get_data(SENSOR_TYPES[ATTR_WEATHER_HUMIDITY][4]) or ""
+            f_ret = float(s_val)
+        except ValueError:
+            _LOGGER.warning("Humidity - value not float: %s", s_val )
+            f_ret = 0
+        return f_ret
 
     @property
     def wind_speed(self):
         """Return the wind speed."""
-        return float(self.dhmz_data.get_data(SENSOR_TYPES[ATTR_WEATHER_WIND_SPEED][4]))
+        try:
+            s_val = self.dhmz_data.get_data(SENSOR_TYPES[ATTR_WEATHER_WIND_SPEED][4]) or ""
+            f_ret = float(s_val)
+        except ValueError:
+            _LOGGER.warning("Wind speed - value not float: %s", s_val )
+            f_ret = 0
+        return f_ret
 
     @property
     def wind_bearing(self):
@@ -235,13 +259,18 @@ class DhmzWeather(WeatherEntity):
 
         for entry in self.dhmz_data.get_forecast_hourly():
             if entry.get("datetime") > datetime.now():
+                try:
+                    s_cond = [ k for k, v in CONDITION_CLASSES.items() if entry.get("vrijeme") in v ][0]
+                except IndexError as err:
+                    _LOGGER.warning("Unknown DHMZ weather symbol: %s", entry.get("vrijeme") )
+                    s_cond = "exceptional"
                 elem = {
                     ATTR_FORECAST_TIME: entry.get("datetime"),
                     ATTR_FORECAST_TEMP: float(entry.get("Tmx")),
                     ATTR_FORECAST_PRECIPITATION: float(entry.get("percipitation")),
                     ATTR_FORECAST_WIND_SPEED: WIND_SPEED_MAPPING[int(entry.get("wind")[-1:])],
                     ATTR_FORECAST_WIND_BEARING: entry.get("wind")[:-1],
-                    ATTR_FORECAST_CONDITION: [ k for k, v in CONDITION_CLASSES.items() if entry.get("vrijeme") in v ][0],
+                    ATTR_FORECAST_CONDITION: s_cond,
                     "weather_symbol": entry.get("vrijeme"),
                 }
                 ret.append(elem)
@@ -256,6 +285,9 @@ class DhmzWeather(WeatherEntity):
     @staticmethod
     def format_condition(weather_symbol):
         """Return condition from dict CONDITION_CLASSES."""
-        return [
-            k for k, v in CONDITION_CLASSES.items() if weather_symbol in v
-        ][0]
+        try:
+            s_ret = [ k for k, v in CONDITION_CLASSES.items() if weather_symbol in v][0]
+            return s_ret
+        except IndexError as err:
+            _LOGGER.warning("Unknown DHMZ weather symbol: %s", weather_symbol )
+            return "exceptional"

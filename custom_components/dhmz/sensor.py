@@ -189,7 +189,7 @@ class DhmzSensor(Entity):
         else:
             ret[ATTR_UPDATED] = self.probe.last_update
         if self.variable == ATTR_WEATHER_PRESSURE:
-            ret["pressure_tendency"] = self.probe.get_data(SENSOR_TYPES["pressure_tendency"][4]) + " hPa"
+            ret["pressure_tendency"] = (self.probe.get_data(SENSOR_TYPES["pressure_tendency"][4]) or "?") + " hPa"
         return(ret)
 
     @property

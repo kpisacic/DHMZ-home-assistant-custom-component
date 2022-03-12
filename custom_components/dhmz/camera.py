@@ -123,7 +123,7 @@ class DhmzRadar(Camera):
             _LOG.error("Failed to fetch image, %s", type(err))
             return False
 
-    async def async_camera_image(self) -> Optional[bytes]:
+    async def async_camera_image(self, width: int = 0, height: int = 0) -> Optional[bytes]:
         """
         Return a still image response from the camera.
 

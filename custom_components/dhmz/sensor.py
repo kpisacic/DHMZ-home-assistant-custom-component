@@ -5,6 +5,7 @@ import json
 import logging
 import os
 from urllib.request import urlopen, URLError, HTTPError
+from http.client import RemoteDisconnected
 from lxml import etree
 import voluptuous as vol
 
@@ -277,11 +278,13 @@ class DhmzData:
         except URLError as err:
             _LOGGER.error("URL error: %s", err.reason )
         except etree.ParseError as err:
-            _LOGGER.error("LXML PARSE error: %s at position: %s", err.message, err.position )
+            _LOGGER.error("LXML PARSE error: %s as position: %s, offset: %s, line: %s", err.msg, err.position, err.offset, err.lineno )
         except etree.ParserError as err:
             _LOGGER.error("LXML PARSER error: %s", err.message )
         except etree.XMLSyntaxError as err:
-            _LOGGER.error("LXML XML SYNTAX error: %s as position: %s, offset: %s, line: %s", err.message, err.position, err.position, err.lineno )
+            _LOGGER.error("LXML XML SYNTAX error: %s as position: %s, offset: %s, line: %s", err.msg, err.position, err.offset, err.lineno )
+        except RemoteDisconnected as err:
+            _LOGGER.error("HTTP Remote end disconnected")
 
     def forecast_daily(self):
         """Fetch and parse the latest daily forecast XML data."""
@@ -331,11 +334,13 @@ class DhmzData:
         except URLError as err:
             _LOGGER.error("URL error: %s", err.reason )
         except etree.ParseError as err:
-            _LOGGER.error("LXML PARSE error: %s at position: %s", err.message, err.position )
+            _LOGGER.error("LXML PARSE error: %s as position: %s, offset: %s, line: %s", err.msg, err.position, err.offset, err.lineno )
         except etree.ParserError as err:
             _LOGGER.error("LXML PARSER error: %s", err.message )
         except etree.XMLSyntaxError as err:
-            _LOGGER.error("LXML XML SYNTAX error: %s as position: %s, offset: %s, line: %s", err.message, err.position, err.position, err.lineno )
+            _LOGGER.error("LXML XML SYNTAX error: %s as position: %s, offset: %s, line: %s", err.msg, err.position, err.offset, err.lineno )
+        except RemoteDisconnected as err:
+            _LOGGER.error("HTTP Remote end disconnected")
 
     def forecast_hourly(self):
         """Fetch and parse the latest daily forecast XML data."""
@@ -362,11 +367,13 @@ class DhmzData:
         except URLError as err:
             _LOGGER.error("URL error: %s", err.reason )
         except etree.ParseError as err:
-            _LOGGER.error("LXML PARSE error: %s at position: %s", err.message, err.position )
+            _LOGGER.error("LXML PARSE error: %s as position: %s, offset: %s, line: %s", err.msg, err.position, err.offset, err.lineno )
         except etree.ParserError as err:
             _LOGGER.error("LXML PARSER error: %s", err.message )
         except etree.XMLSyntaxError as err:
-            _LOGGER.error("LXML XML SYNTAX error: %s as position: %s, offset: %s, line: %s", err.message, err.position, err.position, err.lineno )
+            _LOGGER.error("LXML XML SYNTAX error: %s as position: %s, offset: %s, line: %s", err.msg, err.position, err.offset, err.lineno )
+        except RemoteDisconnected as err:
+            _LOGGER.error("HTTP Remote end disconnected")
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):

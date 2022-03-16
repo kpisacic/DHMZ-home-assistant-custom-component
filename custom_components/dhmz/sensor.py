@@ -216,6 +216,7 @@ class DhmzData:
     _data = {}
     _forecast_daily = []
     _forecast_hourly = []
+    _current_situation = []
 
     def __init__(self, station_name, forecast_region_name, forecast_text, forecast_station_name):
         """Initialize the probe."""
@@ -226,6 +227,7 @@ class DhmzData:
         self._data = {}
         self._forecast_daily = []
         self._forecast_hourly = []
+        self._current_situation = []
         _LOGGER.debug("Initialized sensor data: %s, %s, %s, %s", station_name, forecast_region_name, forecast_text, forecast_station_name)
 
     @property
@@ -386,8 +388,10 @@ class DhmzData:
             return  # Not time to update yet; data is only hourly
 
         _LOGGER.debug("Doing sensor data update, last_update was: %s", self.last_update)
-        for dataline in self.current_situation():
-            self._data[dataline.tag] = dataline.text.strip()
+        self._current_situation = self.current_situation()
+        if self._current_situation:
+            for dataline in self._current_situation:
+                self._data[dataline.tag] = dataline.text.strip()
 
         self._forecast_daily = self.forecast_daily()
         if self._forecast_daily:

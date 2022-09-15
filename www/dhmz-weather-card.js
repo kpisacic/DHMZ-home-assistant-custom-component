@@ -130,16 +130,20 @@ class DhmzWeatherCard extends Polymer.Element {
                 <ha-icon icon="hass:weather-windy"></ha-icon> [[weatherObj.attributes.wind_speed]] [[ll('uSpeed')]]
               </div>
             </div>
-            <div class="forecast_text"><div class="label">Danas:</div></div>
-            <div class="forecast_text"><div class="text">[[weatherObj.attributes.forecast_today]]</div></div>
+            <template is="dom-if" if="[[show_today_text]]">
+              <div class="forecast_text"><div class="label">Danas:</div></div>
+              <div class="forecast_text"><div class="text">[[weatherObj.attributes.forecast_today]]</div></div>
+            </template>
             <ha-chart-base hass="[[_hass]]" data="[[ChartData]]" options="[[ChartOptions]]" chartType="[[ChartType]]"></ha-chart-base>
             <div class="conditions">
               <template is="dom-repeat" items="[[forecast]]">
                 <ha-icon class="conditions" style="background-image: url(https://meteo.hr/assets/images/icons/[[item.weather_symbol]].svg)"></ha-icon>
               </template>
             </div>
-            <div class="forecast_text"><div class="label">Sutra:</div></div>
-            <div class="forecast_text"><div class="text">[[weatherObj.attributes.forecast_tommorow]]</div></div>
+            <template is="dom-if" if="[[show_tomorrow_text]]">
+              <div class="forecast_text"><div class="label">Sutra:</div></div>
+              <div class="forecast_text"><div class="text">[[weatherObj.attributes.forecast_tommorow]]</div></div>
+            </template>
           </div>
         </ha-card>
       `;
@@ -193,6 +197,18 @@ class DhmzWeatherCard extends Polymer.Element {
       this.mode = config.mode;
       if (!config.weather) {
         throw new Error('Please define "weather" entity in the card config');
+      }
+      if ( typeof(config.show_today_text) == "undefined") {
+        this.show_today_text = true;
+      }
+      else {
+        this.show_today_text = config.show_today_text;
+      }
+      if ( typeof(config.show_tomorrow_text) == "undefined") {
+        this.show_tomorrow_text = true;
+      }
+      else {
+        this.show_tomorrow_text = config.show_tomorrow_text;
       }
     }
   

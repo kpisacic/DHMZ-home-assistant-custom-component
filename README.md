@@ -197,10 +197,14 @@ resources:
       - mode: hourly
         type: 'custom:dhmz-weather-card'
         weather: weather.dhmz_maksimir
+        show_today_text: true
+        show_tomorrow_text: true
 ```
 
 With `weather` attribute you should state name of the entity configured in weather compontent.
 For mode, please use `daily` or `hourly`, since `hourly` was mostly customized and tested and is preffered to be used.
+Attribute `show_today_text` - shows today's text forecast (true|false), default is true.
+Attribute `show_tomorrow_text` - shows tomorrow's text forecast (true|false), default is true.
 
 ## station_name
 

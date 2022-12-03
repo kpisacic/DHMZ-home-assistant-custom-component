@@ -20,7 +20,7 @@ from homeassistant.components.weather import (
     PLATFORM_SCHEMA,
     WeatherEntity,
 )
-from homeassistant.const import CONF_NAME, TEMP_CELSIUS
+from homeassistant.const import CONF_NAME, UnitOfTemperature, UnitOfPressure, UnitOfSpeed
 from homeassistant.helpers import config_validation as cv
 
 # Reuse data and API logic from the sensor implementation
@@ -187,7 +187,7 @@ class DhmzWeather(WeatherEntity):
         return(ret)
 
     @property
-    def temperature(self):
+    def _attr_native_temperature(self):
         """Return the platform temperature."""
         try:
             s_val = self.dhmz_data.get_data(SENSOR_TYPES[ATTR_WEATHER_TEMPERATURE][4]) or ""
@@ -198,12 +198,12 @@ class DhmzWeather(WeatherEntity):
         return f_ret
 
     @property
-    def temperature_unit(self):
+    def _attr_native_temperature_unit(self):
         """Return the unit of measurement."""
-        return TEMP_CELSIUS
+        return UnitOfTemperature.CELSIUS
 
     @property
-    def pressure(self):
+    def _attr_native_pressure(self):
         """Return the pressure."""
         try:
             s_val = self.dhmz_data.get_data(SENSOR_TYPES[ATTR_WEATHER_PRESSURE][4]) or ""
@@ -212,6 +212,11 @@ class DhmzWeather(WeatherEntity):
             _LOGGER.warning("Pressure - value not float: %s", s_val )
             f_ret = 0
         return f_ret
+
+    @property
+    def _attr_native_pressure_unit(self):
+        """Return the unit of measurement."""
+        return UnitOfPressure.HPA
 
     @property
     def humidity(self):
@@ -225,7 +230,7 @@ class DhmzWeather(WeatherEntity):
         return f_ret
 
     @property
-    def wind_speed(self):
+    def _attr_native_wind_speed(self):
         """Return the wind speed."""
         try:
             s_val = self.dhmz_data.get_data(SENSOR_TYPES[ATTR_WEATHER_WIND_SPEED][4]) or ""
@@ -234,6 +239,11 @@ class DhmzWeather(WeatherEntity):
             _LOGGER.warning("Wind speed - value not float: %s", s_val )
             f_ret = 0
         return f_ret
+
+    @property
+    def _attr_native_wind_speed_unit(self):
+        """Return the unit of measurement."""
+        return UnitOfSpeed.METERS_PER_SECOND
 
     @property
     def wind_bearing(self):

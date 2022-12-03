@@ -4,7 +4,7 @@ const locale = {
       tempLo: "Temperature night",
       precip: "Precipitations",
       uPress: "hPa",
-      uSpeed: "m/s",
+      uSpeed: "km/h",
       uPrecip: "mm"
     },
     hr: {
@@ -12,7 +12,7 @@ const locale = {
       tempLo: "Najniža temperatura",
       precip: "Padaline",
       uPress: "hPa",
-      uSpeed: "m/s",
+      uSpeed: "km/h",
       uPrecip: "mm"
     }
   };

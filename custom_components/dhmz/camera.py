@@ -96,7 +96,7 @@ class DhmzRadar(Camera):
         """Retrieve new radar image and return whether this succeeded."""
         session = async_get_clientsession(self.hass)
 
-        url = RADAR_MAP_URL_ANIM
+        url = RADAR_MAP_URL_STATIC
 
         if self._last_modified:
             headers = {"If-Modified-Since": self._last_modified}

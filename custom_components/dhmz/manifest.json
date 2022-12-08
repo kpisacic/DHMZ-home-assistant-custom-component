@@ -3,7 +3,7 @@
   "name": "DHMZ Croatia",
   "version": "2021.03.1",
   "documentation": "https://www.home-assistant.io/integrations/dhmz",
-  "requirements": ["lxml>=4.0.0"],
+  "requirements": ["lxml>=4.0.0", "pillow>=8.1.0"],
   "dependencies": [],
   "codeowners": [
     "@kpisacic"

@@ -166,9 +166,14 @@ To add DHMZ radar imagery to your installation, add the desired lines from the f
 camera:
   - platform: dhmz
     name: DHMZ Radar
+    delta: 300
+    previous_images_time: 125
+    current_image_time: 2000
+    longitude: 48
+    latitude: 16
+    mark_location: True
+    image_format: WebP
 ```
-
-- If no name is given, the camera entity will be named `camera.dhmz`.
 
 *Configuration*
 
@@ -176,6 +181,43 @@ camera:
   - description: Name to be used for the entity ID, e.g. `camera.<name>`.
   - required: false
   - type: string
+- delta:
+  - description: Time in seconds between check for new radar images, defaults to 300 sec
+  - required: false
+  - type: integer
+- previous_images_time: 
+  - description: Time in miliseconds that determines how long old radar images in animation will be displayed, defaults to 125 ms
+  - required: false
+  - type: integer
+- current_image_time: 
+  - description: Time in miliseconds that determines how long last (current) radar image in animation will be displayed, defaults to 2000 ms
+  - required: false
+  - type: integer
+- mark_location:
+  - description: mark red circle on geographical coordinates of current location, default is False (not to display location). Allowed values are: True or False
+  - required: false
+  - type: string
+- longitude:
+  - description: Longitude of location to use for closest station determination, if not present will be taken from HA configuration
+  - required: false
+  - type: float
+- latitude:
+  - description: Latitude of location to use for closest station determinationdetermination, if not present will be taken from HA configuration
+  - required: false
+  - type: float
+- image_format:
+  - description: Animated image format that will be created, can be one of: WebP or GIF. Defaut is WebP.
+  - required: false
+  - type: string
+
+- If no `name` is given, the camera entity will be named `camera.dhmz`.
+- If no `delta` is given, default is set to 300 seconds (every 5 minutes). Since radar images on DHMZ are refreshed every 5 minutes, it is recommented to put this not less then 60 seconds (every minute). Components checks if image was actually updated and will not re-download it's contant if it is unchanged from last check.  
+- `previous_images_time` and `current_image_time` can determine how radar image animation will be generated. All old but current radar images are show for `previous_images_time` and only last and current radar image is shown for `current_image_time`.  Please note that since HA refreshes images every 10 seconds, best results are achieved if sum of all image times can be multiplied to this 10 seconds. This is why default values of 125 ms and 2000 ms - which sum up to 5 seconds (24x125+2000=5000) - which is nicely shown in the previes window without jerky and skipping frames. If changing these times it is strongly suggested to keep it to match to: 24 x `previous_images_time` + `current_image_time` = 10 sec or any other common denominator of 10 sec.
+- `logitude` and `latitude` are only usefull when setting `mark_location` as True. `mark_location` will work without explicitly stated `logitude` and `latitude` if HA has home location correctly configured.
+- `image_format` that animated image will be created in. Default is WebP, since it yields smaller image sizes. If you face issue in displaying WebP in your web browser, you can change to GIF, but files shall be larger and producing more traffic towards browser.
+
+*Known issues*
+- When displaying radar image in home assistant's dashboard picture entity card, use "auto" not "live" mode. Ddifference is that in "auto" browser will fetch new picture every 10 seconds. And in "live" it will fetch  every half seconds. This unfortunately cannot be changed, and for our purpose, more kless frequent refresh e.g. one per minute or even every 5 minutes, would be sufficient. This every 10 seconds refresh will cause only traffic between browser and home assistant server, not towards service provider DHMZ, since all images are cached. However, improvement would be to use some alternative to stock picture entity card which allows custom refresh rates. One such is https://github.com/dimagoltsman/refreshable-picture-card , but unfortunately, it does not work correctly for camera_image methods, only for static entity images.
 
 
 ## Custom card

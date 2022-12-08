@@ -49,4 +49,9 @@ weather:
 camera:
   - platform: dhmz
     name: DHMZ Radar
+    delta: 120
+    previous_images_time: 125
+    current_image_time: 2000
+    mark_location: True
+    image_format: WebP
 

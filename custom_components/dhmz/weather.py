@@ -277,7 +277,7 @@ class DhmzWeather(WeatherEntity):
                 elem = {
                     ATTR_FORECAST_TIME: entry.get("datetime"),
                     ATTR_FORECAST_TEMP: float(entry.get("Tmx")),
-                    ATTR_FORECAST_PRECIPITATION: float(entry.get("percipitation")),
+                    ATTR_FORECAST_PRECIPITATION: float(entry.get("precipitation")),
                     ATTR_FORECAST_WIND_SPEED: WIND_SPEED_MAPPING[int(entry.get("wind")[-1:])],
                     ATTR_FORECAST_WIND_BEARING: entry.get("wind")[:-1],
                     ATTR_FORECAST_CONDITION: s_cond,

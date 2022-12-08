@@ -263,7 +263,7 @@ class DhmzData:
             elems.extend([vardt])
 
             _LOGGER.debug("Refreshing current_situation - oborine.xml")
-            # get percipitation "oborine.xml"
+            # get precipitation "oborine.xml"
             tree = etree.parse(urlopen(PRECIPITATION_API_URL))
             elem_kisa = tree.xpath("//dnevna_oborina/grad[ime='" + self._station_name + "']/kolicina")
             if elem_kisa: 
@@ -357,7 +357,7 @@ class DhmzData:
                 elems["vrijeme"] = node.xpath("simbol/text()")[0]
                 elems["Tmx"] = node.xpath("t_2m/text()")[0]
                 elems["wind"] = node.xpath("vjetar/text()")[0]
-                elems["percipitation"] = node.xpath("oborina/text()")[0]
+                elems["precipitation"] = node.xpath("oborina/text()")[0]
                 elems["datetime"] = datetime.strptime(node.get("datum") + " " + node.get("sat"), "%d.%m.%Y. %H")
                 ret.append(elems)
 

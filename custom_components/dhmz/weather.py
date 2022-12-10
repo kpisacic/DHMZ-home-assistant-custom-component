@@ -230,6 +230,17 @@ class DhmzWeather(WeatherEntity):
         return f_ret
 
     @property
+    def precipitation(self):
+        """Return the precipitation."""
+        try:
+            s_val = self.dhmz_data.get_data(SENSOR_TYPES["precipitation"][4]) or "0"
+            f_ret = float(s_val)
+        except ValueError:
+            _LOGGER.warning("Humidity - value not float: %s", s_val )
+            f_ret = 0
+        return f_ret
+
+    @property
     def _attr_native_wind_speed(self):
         """Return the wind speed."""
         try:

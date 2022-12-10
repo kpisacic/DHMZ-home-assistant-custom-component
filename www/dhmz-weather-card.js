@@ -118,7 +118,7 @@ class DhmzWeatherCard extends Polymer.Element {
             <div class="attributes" on-click="_weatherAttr">
               <div>
                 <ha-icon icon="hass:water-percent"></ha-icon> [[weatherObj.attributes.humidity]] %<br>
-                <ha-icon icon="mdi:weather-pouring"></ha-icon> [[weatherObj.attributes.precipitation]] mm/24h
+                <ha-icon icon="mdi:weather-pouring"></ha-icon> [[weatherObj.attributes.precipitation]] [[ll('uPrecip')]]
               </div>
               <div>
               <ha-icon icon="hass:gauge"></ha-icon> [[weatherObj.attributes.pressure]] [[ll('uPress')]] ([[weatherObj.attributes.pressure_tendency]])<br>

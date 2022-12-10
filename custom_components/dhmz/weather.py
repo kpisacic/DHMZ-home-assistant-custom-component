@@ -179,7 +179,7 @@ class DhmzWeather(WeatherEntity):
             "weather_symbol": self.dhmz_data.get_data(SENSOR_TYPES["weather_symbol"][4]),
             ATTR_STATION: self.dhmz_data.get_data(SENSOR_TYPES["station_name"][4]),
             ATTR_UPDATED: self.dhmz_data.last_update.isoformat(),
-            "pressure_tendency": self.dhmz_data.get_data(SENSOR_TYPES["pressure_tendency"][4]) + " hPa",
+            "pressure_tendency": self.dhmz_data.get_data(SENSOR_TYPES["pressure_tendency"][4]),
             "precipitation": self.dhmz_data.get_data(SENSOR_TYPES["precipitation"][4]) if self.dhmz_data.get_data(SENSOR_TYPES["precipitation"][4]) else "0" + " mm/24h",
             "forecast_today": self.dhmz_data.get_data(SENSOR_TYPES["forecast_text_today"][4]),
             "forecast_tommorow": self.dhmz_data.get_data(SENSOR_TYPES["forecast_text_tommorow"][4]),

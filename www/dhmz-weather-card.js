@@ -62,10 +62,11 @@ class DhmzWeatherCard extends Polymer.Element {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: 10px 0px 10px 0px;
+            margin: 5px 0px 5px 0px;
           }
           .attributes div {
             text-align: left;
+            font-size: 12px;
           }
           .conditions {
             display: flex;
@@ -117,12 +118,12 @@ class DhmzWeatherCard extends Polymer.Element {
             <div class="attributes" on-click="_weatherAttr">
               <div>
                 <ha-icon icon="hass:water-percent"></ha-icon> [[weatherObj.attributes.humidity]] %<br>
-                <ha-icon icon="hass:gauge"></ha-icon> [[weatherObj.attributes.pressure]] [[ll('uPress')]] ([[weatherObj.attributes.pressure_tendency]])
+                <ha-icon icon="mdi:weather-pouring"></ha-icon> [[weatherObj.attributes.precipitation]] mm/24h
               </div>
               <div>
-                <template is="dom-if" if="[[sunObj]]">
-                  <ha-icon icon="mdi:weather-sunset-up"></ha-icon> [[computeTime(sunObj.attributes.next_rising)]]<br>
-                  <ha-icon icon="mdi:weather-sunset-down"></ha-icon> [[computeTime(sunObj.attributes.next_setting)]]
+              <ha-icon icon="hass:gauge"></ha-icon> [[weatherObj.attributes.pressure]] [[ll('uPress')]] ([[weatherObj.attributes.pressure_tendency]])<br>
+              <template is="dom-if" if="[[sunObj]]">
+                  <ha-icon icon="mdi:weather-sunset-up"></ha-icon> [[computeTime(sunObj.attributes.next_rising)]] - [[computeTime(sunObj.attributes.next_setting)]]
                 </template>
               </div>
               <div>

@@ -28,6 +28,7 @@ CONF_IMAGE_FORMAT = "image_format"
 
 RADAR_MAP_URL_STATIC = "https://vrijeme.hr/kompozit-stat.png"
 RADAR_MAP_URL_ANIM = "https://vrijeme.hr/radari/anim_kompozit{index}.png"
+RADAR_MAP_URL_ANIM_GIF = "http://vrijeme.hr/anim_kompozit.gif"
 
 _LOG = logging.getLogger(__name__)
 
@@ -136,7 +137,43 @@ class DhmzRadar(Camera):
 
         return dt_util.utcnow() > self._deadline
 
-    #@Throttle(MIN_TIME_BETWEEN_UPDATE)0
+    async def __retrieve_radar_image_old(self, width, height) -> bool:
+        """Retrieve new radar image and return whether this succeeded."""
+        session = async_get_clientsession(self.hass)
+
+        if self._images[0]["last_modified"]:
+            headers = {"If-Modified-Since": self._images[0]["last_modified"] }
+        else:
+            headers = {}
+
+        _LOG.debug("GET url: %s", RADAR_MAP_URL_ANIM_GIF )
+        try:
+            res = await session.get( RADAR_MAP_URL_ANIM_GIF , timeout=5, headers=headers)
+            res.raise_for_status()
+        except (asyncio.TimeoutError, aiohttp.ClientError) as err:
+            _LOG.error("Failed to fetch get, %s", err)
+            return False
+
+        if res.status == 304:
+            _LOG.debug("GET - HTTP 304 - success")
+            return True
+
+        try:
+            current_content = await res.read()
+        except (asyncio.TimeoutError, aiohttp.ClientError) as err:
+            _LOG.error("Failed to read content, %s", err)
+            return False
+
+        self._last_image = BytesIO(current_content).getvalue()
+
+        last_modified = res.headers.get("last-modified")
+        if last_modified:
+            self._images[0]["last_modified"] = last_modified
+
+        _LOG.debug("Got image %s", RADAR_MAP_URL_ANIM_GIF )
+
+        return True
+
     async def __retrieve_radar_image(self, width, height) -> bool:
         """Retrieve new radar image and return whether this succeeded."""
         session = async_get_clientsession(self.hass)
@@ -158,7 +195,7 @@ class DhmzRadar(Camera):
                 res = await session.head(RADAR_MAP_URL_ANIM.format(index=i+1) , timeout=5, headers=headers)
                 res.raise_for_status()
             except (asyncio.TimeoutError, aiohttp.ClientError) as err:
-                _LOG.error("Failed to fetch header, %s", type(err))
+                _LOG.error("Failed to fetch header, %s", err)
                 return False
 
             if res.status == 304:
@@ -198,7 +235,7 @@ class DhmzRadar(Camera):
                     res = await session.get( RADAR_MAP_URL_ANIM.format(index=i+1) , timeout=5, headers=headers)
                     res.raise_for_status()
                 except (asyncio.TimeoutError, aiohttp.ClientError) as err:
-                    _LOG.error("Failed to fetch get, %s", type(err))
+                    _LOG.error("Failed to fetch get, %s", err)
                     return False
 
                 if res.status == 304:
@@ -208,7 +245,7 @@ class DhmzRadar(Camera):
                 try:
                     current_content = await res.read()
                 except (asyncio.TimeoutError, aiohttp.ClientError) as err:
-                    _LOG.error("Failed to read content, %s", type(err))
+                    _LOG.error("Failed to read content, %s", err)
                     return False
 
                 try:
@@ -254,7 +291,6 @@ class DhmzRadar(Camera):
 
             self._last_image = file_bytes_io.getvalue()
 
-
         return True
 
     async def async_camera_image(self, width: int = 0, height: int = 0) -> Optional[bytes]:
@@ -294,6 +330,8 @@ class DhmzRadar(Camera):
         try:
             now = dt_util.utcnow()
             was_updated = await self.__retrieve_radar_image(width, height)
+            if was_updated == False:
+                was_updated = await self.__retrieve_radar_image_old(width, height)
             # was updated? Set new deadline relative to now before loading
             if was_updated:
                 self._deadline = now + timedelta(seconds=self._delta)

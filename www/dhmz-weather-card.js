@@ -16,140 +16,223 @@ const locale = {
       uPrecip: "mm"
     }
   };
-  
-class DhmzWeatherCard extends Polymer.Element {
-  
-    static get template() {
-      return Polymer.html`
-        <style>
-          ha-icon {
-            color: var(--paper-item-icon-color);
-          }
-          .card {
-            padding: 0 18px 18px 18px;
-          }
-          .main {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 60px;
-            font-weight: 400;
-          }
-          .condition {
-            display: flex;
-            justify-content: space-between;
-            font-size: 24px;
-            font-weight: 350;
-            padding-left: 10px;
-          }
-         .main ha-icon {
-            height: 74px;
-            width: 74px;
-            --iron-icon-height: 74px;
-            --iron-icon-width: 74px;
-            margin-right: 20px;
-            background-repeat: no-repeat;
-            background-position: center center;
-          }
-          .main div {
-            cursor: pointer;
-          }
-          .main sup {
-            font-size: 32px;
-          }
-          .attributes {
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 5px 0px 5px 0px;
-          }
-          .attributes div {
-            text-align: left;
-            font-size: 12px;
-          }
-          .conditions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 0px 3px 0px 10px;
-          }
-          .conditions ha-icon {
-            height: 20px;
-            width: 20px;
-            --iron-icon-height: 20px;
-            --iron-icon-width: 20px;
-            margin-right: 1px;
-            margin-left: 0px;
-            background-repeat: no-repeat;
-            background-position: center bottom;
-          }
-          .forecast_text {
-            display: flex;
-            align-items: left;
-            justify-content: space-between;
-            margin: 5px 0px 5px 0px;
-          }
-          .forecast_text .label {
-            display: flex;
-            align-items: left;
-            justify-content: space-between;
-            font-weight: 450;
-            margin: 0px 10px 0px 0px;
-          }
-          .forecast_text .text {
-            display: flex;
-            align-items: left;
-            justify-content: space-between;
-          }
-        </style>
-        <ha-card header="[[title]]">
+
+import {
+  LitElement,
+  html,
+  css,
+} from "https://unpkg.com/lit-element@2.0.1/lit-element.js?module";
+
+class DhmzWeatherCard extends LitElement {
+
+  constructor() {
+    super();
+    this.mode = 'daily';
+    this.weatherIcons = {
+      'clear-night': 'hass:weather-night',
+      'cloudy': 'hass:weather-cloudy',
+      'fog': 'hass:weather-fog',
+      'hail': 'hass:weather-hail',
+      'lightning': 'hass:weather-lightning',
+      'lightning-rainy': 'hass:weather-lightning-rainy',
+      'partlycloudy': 'hass:weather-partly-cloudy',
+      'pouring': 'hass:weather-pouring',
+      'rainy': 'hass:weather-rainy',
+      'snowy': 'hass:weather-snowy',
+      'snowy-rainy': 'hass:weather-snowy-rainy',
+      'sunny': 'hass:weather-sunny',
+      'windy': 'hass:weather-windy',
+      'windy-variant': 'hass:weather-windy-variant',
+      'exceptional': 'mdi:exclamation'
+    };
+    this.cardinalDirectionsIcon = {
+      'N': 'mdi:arrow-down', 'NE': 'mdi:arrow-bottom-left', 'E': 'mdi:arrow-left',
+      'SE': 'mdi:arrow-top-left', 'S': 'mdi:arrow-up', 'SW': 'mdi:arrow-top-right',
+      'W': 'mdi:arrow-right', 'NW': 'mdi:arrow-bottom-right', 'C': 'mdi:circle-outline'
+    };
+  }
+
+  setConfig(config) {
+    //console.log(config);
+    this.config = config;
+    this.title = config.title;
+    this.weatherObj = config.weather;
+    this.tempObj = config.temp;
+    this.mode = config.mode;
+    if (!config.weather) {
+      throw new Error('Please define "weather" entity in the card config');
+    }
+    if ( typeof(config.show_today_text) == "undefined") {
+      this.show_today_text = true;
+    }
+    else {
+      this.show_today_text = config.show_today_text;
+    }
+    if ( typeof(config.show_tomorrow_text) == "undefined") {
+      this.show_tomorrow_text = true;
+    }
+    else {
+      this.show_tomorrow_text = config.show_tomorrow_text;
+    }
+    if ( this.title = "undefined" ) {
+      this.title = "";
+    }
+    this.ChartData = { datasets: [], };
+    this.ChartOptions = {};
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    this.lang = this._hass.selectedLanguage || this._hass.language;
+    this.weatherObj = this.config.weather in hass.states ? hass.states[this.config.weather] : null;
+    this.sunObj = 'sun.sun' in hass.states ? hass.states['sun.sun'] : null;
+    this.tempObj = this.config.temp in hass.states ? hass.states[this.config.temp] : null;
+    var tmp_forecast = this.weatherObj.attributes.forecast.slice(0,29);
+    this.forecast = [];
+    for (var i = 0; i < tmp_forecast.length; i+=2) {
+      this.forecast.push(tmp_forecast[i]);
+    }
+    this.windBearing = this.weatherObj.attributes.wind_bearing;
+    //console.log(this.weatherObj);
+    this.drawChart();
+  }
+
+  get hass() {
+    return this._hass; // Wherever your code calls this.hass it will return the stored value of _hass
+  }
+
+  static get styles() {
+    return css`
+        ha-icon {
+          color: var(--paper-item-icon-color);
+        }
+        .card {
+          padding: 0 18px 18px 18px;
+        }
+        .main {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 60px;
+          font-weight: 400;
+        }
+        .condition {
+          display: flex;
+          justify-content: space-between;
+          font-size: 24px;
+          font-weight: 350;
+          padding-left: 10px;
+        }
+      .main ha-icon {
+          height: 74px;
+          width: 74px;
+          --iron-icon-height: 74px;
+          --iron-icon-width: 74px;
+          margin-right: 20px;
+          background-repeat: no-repeat;
+          background-position: center center;
+        }
+        .main div {
+          cursor: pointer;
+        }
+        .main sup {
+          font-size: 32px;
+        }
+        .attributes {
+          cursor: pointer;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin: 5px 0px 5px 0px;
+        }
+        .attributes div {
+          text-align: left;
+          font-size: 12px;
+        }
+        .conditions {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin: 0px 3px 0px 10px;
+        }
+        .conditions ha-icon {
+          height: 20px;
+          width: 20px;
+          --iron-icon-height: 20px;
+          --iron-icon-width: 20px;
+          margin-right: 1px;
+          margin-left: 0px;
+          background-repeat: no-repeat;
+          background-position: center bottom;
+        }
+        .forecast_text {
+          display: flex;
+          align-items: left;
+          justify-content: space-between;
+          margin: 5px 0px 5px 0px;
+        }
+        .forecast_text .label {
+          display: flex;
+          align-items: left;
+          justify-content: space-between;
+          font-weight: 450;
+          margin: 0px 10px 0px 0px;
+        }
+        .forecast_text .text {
+          display: flex;
+          align-items: left;
+          justify-content: space-between;
+        }
+    `;
+  }
+
+  render() {
+    return html`
+        <ha-card header="${this.title}">
           <div class="card">
             <div class="main">
-              <ha-icon style="background-image: url([[weatherObj.attributes.entity_picture]])"></ha-icon>
-                <template is="dom-if" if="[[tempObj]]">
-                    <div on-click="_tempAttr">[[tempObj.state]]<sup>[[getUnit('temperature')]]</sup></div>
-                </template>
-                <template is="dom-if" if="[[!tempObj]]">
-                    <div on-click="_weatherAttr">[[weatherObj.attributes.temperature]]<sup>[[getUnit('temperature')]]</sup></div>
-                </template>
-              <div class="condition">[[weatherObj.attributes.condition]]</div>
+              <ha-icon style="background-image: url(${this.weatherObj.attributes.entity_picture})"></ha-icon>
+              <div @click=${this._weatherAttr}>${this.weatherObj.attributes.temperature}<sup>${this.getUnit('temperature')}</sup></div>
+              <div class="condition">${this.weatherObj.attributes.condition}</div>
             </div>
-            <div class="attributes" on-click="_weatherAttr">
+            <div class="attributes" @click=${this._weatherAttr}>
               <div>
-                <ha-icon icon="hass:water-percent"></ha-icon> [[weatherObj.attributes.humidity]] %<br>
-                <ha-icon icon="mdi:weather-pouring"></ha-icon> [[weatherObj.attributes.precipitation]] [[ll('uPrecip')]]
+                <ha-icon icon="hass:water-percent"></ha-icon> ${this.weatherObj.attributes.humidity} %<br>
+                <ha-icon icon="mdi:weather-pouring"></ha-icon> ${this.weatherObj.attributes.precipitation} ${this.ll('uPrecip')}
               </div>
               <div>
-              <ha-icon icon="hass:gauge"></ha-icon> [[weatherObj.attributes.pressure]] [[ll('uPress')]] ([[weatherObj.attributes.pressure_tendency]])<br>
-              <template is="dom-if" if="[[sunObj]]">
-                  <ha-icon icon="mdi:weather-sunset-up"></ha-icon> [[computeTime(sunObj.attributes.next_rising)]] - [[computeTime(sunObj.attributes.next_setting)]]
-                </template>
+                <ha-icon icon="hass:gauge"></ha-icon> ${this.weatherObj.attributes.pressure} ${this.ll('uPress')} (${this.weatherObj.attributes.pressure_tendency})<br>
+                ${ this.sunObj ?  
+                  html `<ha-icon icon="mdi:weather-sunset-up"></ha-icon> ${this.computeTime(this.sunObj.attributes.next_rising)} - ${this.computeTime(this.sunObj.attributes.next_setting)}`
+                  : html ``
+                }
               </div>
               <div>
-                <ha-icon icon="[[getWindDirIcon(windBearing)]]"></ha-icon> [[windBearing]]<br>
-                <ha-icon icon="hass:weather-windy"></ha-icon> [[weatherObj.attributes.wind_speed]] [[ll('uSpeed')]]
+                <ha-icon icon="${this.getWindDirIcon(this.windBearing)}"></ha-icon> ${this.windBearing}<br>
+                <ha-icon icon="hass:weather-windy"></ha-icon> ${this.weatherObj.attributes.wind_speed} ${this.ll('uSpeed')}
               </div>
             </div>
-            <template is="dom-if" if="[[show_today_text]]">
-              <div class="forecast_text"><div class="label">Danas:</div></div>
-              <div class="forecast_text"><div class="text">[[weatherObj.attributes.forecast_today]]</div></div>
-            </template>
-            <ha-chart-base hass="[[_hass]]" data="[[ChartData]]" options="[[ChartOptions]]" chartType="[[ChartType]]"></ha-chart-base>
+            ${ this.show_today_text ?
+              html `<div class="forecast_text"><div class="label">Danas:</div></div>
+              <div class="forecast_text"><div class="text">${this.weatherObj.attributes.forecast_today}</div></div>`
+              : html ``
+            }
+            <ha-chart-base .hass=${this._hass} .data=${this.ChartData} .options=${this.ChartOptions} chart-type="bar"></ha-chart-base>
             <div class="conditions">
-              <template is="dom-repeat" items="[[forecast]]">
-                <ha-icon class="conditions" style="background-image: url(https://meteo.hr/assets/images/icons/[[item.weather_symbol]].svg)"></ha-icon>
-              </template>
+            ${this.forecast.map(one_forecast => 
+                html `<ha-icon class="conditions" style="background-image: url(https://meteo.hr/assets/images/icons/${one_forecast.weather_symbol}.svg)"></ha-icon>`
+            )}
             </div>
-            <template is="dom-if" if="[[show_tomorrow_text]]">
-              <div class="forecast_text"><div class="label">Sutra:</div></div>
-              <div class="forecast_text"><div class="text">[[weatherObj.attributes.forecast_tommorow]]</div></div>
-            </template>
+            ${ this.show_tomorrow_text ?
+              html `<div class="forecast_text"><div class="label">Sutra:</div></div>
+              <div class="forecast_text"><div class="text">${this.weatherObj.attributes.forecast_tommorow}</div></div>`
+              : html ``
+            }
           </div>
         </ha-card>
       `;
     }
-  
+
     static get properties() {
       return {
         config: Object,
@@ -158,75 +241,11 @@ class DhmzWeatherCard extends Polymer.Element {
         mode: String,
         weatherObj: {
           type: Object,
-          observer: 'dataChanged',
-        },
+          observer: this.dataChanged
+        }
       };
     }
-  
-    constructor() {
-      super();
-      this.mode = 'daily';
-      this.weatherIcons = {
-        'clear-night': 'hass:weather-night',
-        'cloudy': 'hass:weather-cloudy',
-        'fog': 'hass:weather-fog',
-        'hail': 'hass:weather-hail',
-        'lightning': 'hass:weather-lightning',
-        'lightning-rainy': 'hass:weather-lightning-rainy',
-        'partlycloudy': 'hass:weather-partly-cloudy',
-        'pouring': 'hass:weather-pouring',
-        'rainy': 'hass:weather-rainy',
-        'snowy': 'hass:weather-snowy',
-        'snowy-rainy': 'hass:weather-snowy-rainy',
-        'sunny': 'hass:weather-sunny',
-        'windy': 'hass:weather-windy',
-        'windy-variant': 'hass:weather-windy-variant',
-        'exceptional': 'mdi:exclamation'
-      };
-      this.cardinalDirectionsIcon = {
-        'N': 'mdi:arrow-down', 'NE': 'mdi:arrow-bottom-left', 'E': 'mdi:arrow-left',
-        'SE': 'mdi:arrow-top-left', 'S': 'mdi:arrow-up', 'SW': 'mdi:arrow-top-right',
-        'W': 'mdi:arrow-right', 'NW': 'mdi:arrow-bottom-right', 'C': 'mdi:circle-outline'
-      };
-    }
-  
-    setConfig(config) {
-      this.config = config;
-      this.title = config.title;
-      this.weatherObj = config.weather;
-      this.tempObj = config.temp;
-      this.mode = config.mode;
-      if (!config.weather) {
-        throw new Error('Please define "weather" entity in the card config');
-      }
-      if ( typeof(config.show_today_text) == "undefined") {
-        this.show_today_text = true;
-      }
-      else {
-        this.show_today_text = config.show_today_text;
-      }
-      if ( typeof(config.show_tomorrow_text) == "undefined") {
-        this.show_tomorrow_text = true;
-      }
-      else {
-        this.show_tomorrow_text = config.show_tomorrow_text;
-      }
-    }
-  
-    set hass(hass) {
-      this._hass = hass;
-      this.lang = this._hass.selectedLanguage || this._hass.language;
-      this.weatherObj = this.config.weather in hass.states ? hass.states[this.config.weather] : null;
-      this.sunObj = 'sun.sun' in hass.states ? hass.states['sun.sun'] : null;
-      this.tempObj = this.config.temp in hass.states ? hass.states[this.config.temp] : null;
-      var tmp_forecast = this.weatherObj.attributes.forecast.slice(0,29);
-      this.forecast = [];
-      for (var i = 0; i < tmp_forecast.length; i+=2) {
-        this.forecast.push(tmp_forecast[i]);
-      }
-      this.windBearing = this.weatherObj.attributes.wind_bearing;
-    }
-  
+
     dataChanged() {
       this.drawChart();
     }
@@ -292,7 +311,7 @@ class DhmzWeatherCard extends Polymer.Element {
       var style = getComputedStyle(document.body);
       var textColor = style.getPropertyValue('--primary-text-color');
       var dividerColor = style.getPropertyValue('--divider-color');
-      const ChartType = 'bar';
+      const chartType = 'bar';
       const chartData = {
         labels: dateTime,
         datasets: [
@@ -461,7 +480,7 @@ class DhmzWeatherCard extends Polymer.Element {
           },
         },
       };
-      this.ChartType = ChartType;
+      this.ChartType = chartType;
       this.ChartData = chartData;
       this.ChartOptions = chartOptions;
     }
@@ -488,5 +507,5 @@ class DhmzWeatherCard extends Polymer.Element {
       this._fire('hass-more-info', { entityId: this.config.weather });
     }
 }
-  
+
 customElements.define("dhmz-weather-card", DhmzWeatherCard);

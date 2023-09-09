@@ -82,6 +82,7 @@ class DhmzWeatherCard extends LitElement {
   }
 
   set hass(hass) {
+    //console.log(hass);
     this._hass = hass;
     this.lang = this._hass.selectedLanguage || this._hass.language;
     this.weatherObj = this.config.weather in hass.states ? hass.states[this.config.weather] : null;
@@ -319,7 +320,7 @@ class DhmzWeatherCard extends LitElement {
             label: this.ll('tempHi'),
             type: 'line',
             data: tempHigh,
-            xAxisID: "xAxes",
+            xAxisID: "xDateAxis",
             yAxisID: 'yTempAxis',
             borderWidth: 2.0,
             lineTension: 0.4,
@@ -345,7 +346,7 @@ class DhmzWeatherCard extends LitElement {
             label: this.ll('tempLo'),
             type: 'line',
             data: tempLow,
-            xAxisID: "xAxes",
+            xAxisID: "xDateAxis",
             yAxisID: 'yTempAxis',
             borderWidth: 2.0,
             lineTension: 0.4,
@@ -369,7 +370,7 @@ class DhmzWeatherCard extends LitElement {
             data: precip,
             barThickness: 8,
             maxBarThickness: 15,
-            xAxisID: "xAxes",
+            xAxisID: "xDateAxis",
             yAxisID: 'yPrecipAxis',
             borderColor: "#262889",
             backgroundColor: "#262889",
@@ -390,27 +391,13 @@ class DhmzWeatherCard extends LitElement {
           display: false,
         },
         scales: {
-          xAxes: {
-            type: 'time',
-            adapters: {
-              date: {
-                locale: this._hass.locale,
-              },
-            },
-            display: false,
-            ticks: {
-              display: false,
-            },
-            grid: {
-              display: false,
-            },
-          },
           xDateAxis: {
             type: 'time',
             position: 'top',
             adapters: {
               date: {
                 locale: this._hass.locale,
+                config: this._hass,
               },
             },
             grid: {
@@ -430,7 +417,7 @@ class DhmzWeatherCard extends LitElement {
                 if (mode == 'hourly') {
                   return date.toLocaleTimeString(locale, { weekday: 'short', hour: 'numeric', hour12:false });
                 }
-                return date.toLocaleDateString(locale, { weekday: 'short' });;
+                return date.toLocaleDateString(locale, { weekday: 'short' });
               },
             },
           },
@@ -439,6 +426,7 @@ class DhmzWeatherCard extends LitElement {
             adapters: {
               date: {
                 locale: this._hass.locale,
+                config: this._hass,
               },
             },
             grid: {
@@ -462,6 +450,7 @@ class DhmzWeatherCard extends LitElement {
             adapters: {
               date: {
                 locale: this._hass.locale,
+                config: this._hass,
               },
             },
             grid: {

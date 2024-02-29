@@ -19,6 +19,8 @@ from homeassistant.components.weather import (
     ATTR_FORECAST_PRECIPITATION,
     PLATFORM_SCHEMA,
     WeatherEntity,
+    Forecast,
+    WeatherEntityFeature
 )
 from homeassistant.const import CONF_NAME, UnitOfTemperature, UnitOfPressure, UnitOfSpeed
 from homeassistant.helpers import config_validation as cv
@@ -143,7 +145,11 @@ class DhmzWeather(WeatherEntity):
             self._state = self.format_condition(self.dhmz_data.get_data(SENSOR_TYPES["weather_symbol"][4]))
         else:
             _LOGGER.debug("Update - no update found.")
-    
+
+    @property
+    def supported_features(self) -> WeatherEntityFeature:
+        return WeatherEntityFeature.FORECAST_HOURLY | WeatherEntityFeature.FORECAST_DAILY
+        
     @property
     def name(self):
         """Return the name of the sensor."""
@@ -261,23 +267,18 @@ class DhmzWeather(WeatherEntity):
         """Return the wind bearing."""
         return self.dhmz_data.get_data(SENSOR_TYPES[ATTR_WEATHER_WIND_BEARING][4])
 
-    @property
-    def forecast(self):
-        """Return the forecast."""
-        ret = []
-        # for entry in self.dhmz_data.get_forecast_daily():
-        #     elem = {
-        #         ATTR_FORECAST_TIME: entry.get("datetime"),
-        #         ATTR_FORECAST_TEMP: float(entry.get("Tmx")),
-        #         ATTR_FORECAST_TEMP_LOW: float(entry.get("Tmn")),
-        #         ATTR_FORECAST_WIND_SPEED: WIND_MAPPING[int(entry.get("wind"))][1],
-        #         ATTR_FORECAST_WIND_BEARING: WIND_MAPPING[int(entry.get("wind"))][0],
-        #         ATTR_FORECAST_CONDITION: [ k for k, v in CONDITION_CLASSES.items() if entry.get("vrijeme") in v ][0],
-        #         "weather_symbol": entry.get("vrijeme"),
-        #         "condition_description": entry.get("text"),
-        #     }
-        #     ret.append(elem)
+    @staticmethod
+    def format_condition(weather_symbol):
+        """Return condition from dict CONDITION_CLASSES."""
+        try:
+            s_ret = [ k for k, v in CONDITION_CLASSES.items() if weather_symbol in v][0]
+            return s_ret
+        except IndexError as err:
+            _LOGGER.warning("Unknown DHMZ weather symbol: %s", weather_symbol )
+            return "exceptional"
 
+    def _get_forecast(self) -> list[Forecast]:
+        ret = []
         for entry in self.dhmz_data.get_forecast_hourly():
             if entry.get("datetime") > datetime.now():
                 try:
@@ -295,20 +296,18 @@ class DhmzWeather(WeatherEntity):
                     "weather_symbol": entry.get("vrijeme"),
                 }
                 ret.append(elem)
-        
         if len(ret) == 0:
             retlist = None
         else:
             retlist = sorted(ret, key=itemgetter(ATTR_FORECAST_TIME)) 
-
         return retlist
-    
-    @staticmethod
-    def format_condition(weather_symbol):
-        """Return condition from dict CONDITION_CLASSES."""
-        try:
-            s_ret = [ k for k, v in CONDITION_CLASSES.items() if weather_symbol in v][0]
-            return s_ret
-        except IndexError as err:
-            _LOGGER.warning("Unknown DHMZ weather symbol: %s", weather_symbol )
-            return "exceptional"
+
+    async def async_forecast_hourly(self) -> list[Forecast]:
+        return self._get_forecast()
+
+    async def async_forecast_daily(self) -> list[Forecast]:
+        return self._get_forecast()
+
+    @property
+    def forecast(self):
+        return self._get_forecast()

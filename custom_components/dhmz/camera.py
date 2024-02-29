@@ -138,7 +138,7 @@ class DhmzRadar(Camera):
         return dt_util.utcnow() > self._deadline
 
     async def __retrieve_radar_image_old(self, width, height) -> bool:
-        """Retrieve new radar image and return whether this succeeded."""
+        """Retrieve old radar image format (GIF) and return whether this succeeded."""
         session = async_get_clientsession(self.hass)
 
         if self._images[0]["last_modified"]:

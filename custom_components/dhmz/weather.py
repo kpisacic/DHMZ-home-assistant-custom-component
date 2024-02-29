@@ -22,7 +22,7 @@ from homeassistant.components.weather import (
     Forecast,
     WeatherEntityFeature
 )
-from homeassistant.const import CONF_NAME, UnitOfTemperature, UnitOfPressure, UnitOfSpeed
+from homeassistant.const import CONF_NAME, UnitOfTemperature, UnitOfPressure, UnitOfSpeed, UnitOfPrecipitationDepth
 from homeassistant.helpers import config_validation as cv
 
 # Reuse data and API logic from the sensor implementation
@@ -186,14 +186,14 @@ class DhmzWeather(WeatherEntity):
             ATTR_STATION: self.dhmz_data.get_data(SENSOR_TYPES["station_name"][4]),
             ATTR_UPDATED: self.dhmz_data.last_update.isoformat(),
             "pressure_tendency": self.dhmz_data.get_data(SENSOR_TYPES["pressure_tendency"][4]),
-            "precipitation": self.dhmz_data.get_data(SENSOR_TYPES["precipitation"][4]) if self.dhmz_data.get_data(SENSOR_TYPES["precipitation"][4]) else "0" + " mm/24h",
+            "precipitation": self.dhmz_data.get_data(SENSOR_TYPES["precipitation"][4]) if self.dhmz_data.get_data(SENSOR_TYPES["precipitation"][4]) else "0",
             "forecast_today": self.dhmz_data.get_data(SENSOR_TYPES["forecast_text_today"][4]),
             "forecast_tommorow": self.dhmz_data.get_data(SENSOR_TYPES["forecast_text_tommorow"][4]),
         }
         return(ret)
 
     @property
-    def _attr_native_temperature(self):
+    def native_temperature(self):
         """Return the platform temperature."""
         try:
             s_val = self.dhmz_data.get_data(SENSOR_TYPES[ATTR_WEATHER_TEMPERATURE][4]) or ""
@@ -204,12 +204,12 @@ class DhmzWeather(WeatherEntity):
         return f_ret
 
     @property
-    def _attr_native_temperature_unit(self):
+    def native_temperature_unit(self):
         """Return the unit of measurement."""
         return UnitOfTemperature.CELSIUS
 
     @property
-    def _attr_native_pressure(self):
+    def native_pressure(self):
         """Return the pressure."""
         try:
             s_val = self.dhmz_data.get_data(SENSOR_TYPES[ATTR_WEATHER_PRESSURE][4]) or ""
@@ -220,7 +220,7 @@ class DhmzWeather(WeatherEntity):
         return f_ret
 
     @property
-    def _attr_native_pressure_unit(self):
+    def native_pressure_unit(self):
         """Return the unit of measurement."""
         return UnitOfPressure.HPA
 
@@ -236,7 +236,7 @@ class DhmzWeather(WeatherEntity):
         return f_ret
 
     @property
-    def precipitation(self):
+    def native_precipitation(self):
         """Return the precipitation."""
         try:
             s_val = self.dhmz_data.get_data(SENSOR_TYPES["precipitation"][4]) or "0"
@@ -247,7 +247,12 @@ class DhmzWeather(WeatherEntity):
         return f_ret
 
     @property
-    def _attr_native_wind_speed(self):
+    def native_precipitation_unit(self):
+        """Return the precipitation unit."""
+        return UnitOfPrecipitationDepth.MILLIMETERS
+
+    @property
+    def native_wind_speed(self):
         """Return the wind speed."""
         try:
             s_val = self.dhmz_data.get_data(SENSOR_TYPES[ATTR_WEATHER_WIND_SPEED][4]) or ""
@@ -258,7 +263,7 @@ class DhmzWeather(WeatherEntity):
         return f_ret
 
     @property
-    def _attr_native_wind_speed_unit(self):
+    def native_wind_speed_unit(self):
         """Return the unit of measurement."""
         return UnitOfSpeed.METERS_PER_SECOND
 

@@ -189,6 +189,7 @@ class DhmzWeather(WeatherEntity):
             "precipitation": self.dhmz_data.get_data(SENSOR_TYPES["precipitation"][4]) if self.dhmz_data.get_data(SENSOR_TYPES["precipitation"][4]) else "0",
             "forecast_today": self.dhmz_data.get_data(SENSOR_TYPES["forecast_text_today"][4]),
             "forecast_tommorow": self.dhmz_data.get_data(SENSOR_TYPES["forecast_text_tommorow"][4]),
+            "forecast_list": self._get_forecast(),
         }
         return(ret)
 

@@ -277,8 +277,8 @@ class DhmzWeatherCard extends LitElement {
             time: {
               unit: mode === 'hourly' ? 'hour' : 'day',
               displayFormats: {
-                hour: 'HH:mm',
-                day: 'EEE'
+                hour: 'ccc HH:mm',
+                day: 'ccc'
               }
             },
             grid: {

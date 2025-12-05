@@ -148,7 +148,7 @@ class DhmzWeather(WeatherEntity):
 
     @property
     def supported_features(self) -> WeatherEntityFeature:
-        return WeatherEntityFeature.FORECAST_HOURLY | WeatherEntityFeature.FORECAST_DAILY
+        return WeatherEntityFeature.FORECAST_HOURLY
         
     @property
     def name(self):
@@ -309,9 +309,6 @@ class DhmzWeather(WeatherEntity):
         return retlist
 
     async def async_forecast_hourly(self) -> list[Forecast]:
-        return self._get_forecast()
-
-    async def async_forecast_daily(self) -> list[Forecast]:
         return self._get_forecast()
 
     @property

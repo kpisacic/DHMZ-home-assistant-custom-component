@@ -28,6 +28,8 @@ class DhmzWeatherCard extends LitElement {
   constructor() {
     super();
     this.mode = 'daily';
+    this.chart = null;
+    this.chartInitialized = false;
     this.weatherIcons = {
       'clear-night': 'hass:weather-night',
       'cloudy': 'hass:weather-cloudy',
@@ -53,7 +55,6 @@ class DhmzWeatherCard extends LitElement {
   }
 
   setConfig(config) {
-    //console.log(config);
     this.config = config;
     this.title = config.title;
     this.weatherObj = config.weather;
@@ -74,32 +75,259 @@ class DhmzWeatherCard extends LitElement {
     else {
       this.show_tomorrow_text = config.show_tomorrow_text;
     }
-    if ( this.title = "undefined" ) {
+    if ( this.title == "undefined" ) {
       this.title = "";
     }
-    this.ChartData = { datasets: [], };
-    this.ChartOptions = {};
   }
 
   set hass(hass) {
-    //console.log(hass);
     this._hass = hass;
     this.lang = this._hass.selectedLanguage || this._hass.language;
     this.weatherObj = this.config.weather in hass.states ? hass.states[this.config.weather] : null;
-    //console.log(this.weatherObj);
     this.sunObj = 'sun.sun' in hass.states ? hass.states['sun.sun'] : null;
     this.tempObj = this.config.temp in hass.states ? hass.states[this.config.temp] : null;
-    var tmp_forecast = this.weatherObj.attributes.forecast_list.slice(0,29);
-    this.forecast = [];
-    for (var i = 0; i < tmp_forecast.length; i+=2) {
-      this.forecast.push(tmp_forecast[i]);
+    
+    if (this.weatherObj && this.weatherObj.attributes && this.weatherObj.attributes.forecast_list) {
+      var tmp_forecast = this.weatherObj.attributes.forecast_list.slice(0,29);
+      this.forecast = [];
+      for (var i = 0; i < tmp_forecast.length; i+=2) {
+        this.forecast.push(tmp_forecast[i]);
+      }
+      this.windBearing = this.weatherObj.attributes.wind_bearing;
+      this.requestUpdate();
     }
-    this.windBearing = this.weatherObj.attributes.wind_bearing;
-    this.drawChart();
   }
 
   get hass() {
-    return this._hass; // Wherever your code calls this.hass it will return the stored value of _hass
+    return this._hass;
+  }
+
+  async firstUpdated() {
+    if (!this.chartInitialized) {
+      await this.loadChartLibrary();
+      this.chartInitialized = true;
+      this.updateChart();
+    }
+  }
+
+  updated(changedProperties) {
+    if (this.chartInitialized && changedProperties.has('weatherObj') && this.weatherObj) {
+      setTimeout(() => this.updateChart(), 50);
+    }
+  }
+
+  async loadChartLibrary() {
+    if (window.Chart) return;
+    
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js';
+      script.onload = () => {
+        const adapter = document.createElement('script');
+        adapter.src = 'https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js';
+        adapter.onload = () => resolve();
+        adapter.onerror = () => resolve();
+        document.head.appendChild(adapter);
+      };
+      script.onerror = () => resolve();
+      document.head.appendChild(script);
+    });
+  }
+
+  updateChart() {
+    if (!this.shadowRoot || !window.Chart || !this.weatherObj) return;
+    
+    const canvas = this.shadowRoot.querySelector('#weather-chart');
+    if (!canvas) return;
+
+    const data = this.weatherObj.attributes.forecast_list?.slice(0, 29);
+    if (!data || data.length === 0) return;
+
+    const ctx = canvas.getContext('2d');
+    
+    if (this.chart) {
+      this.chart.destroy();
+      this.chart = null;
+    }
+
+    const style = getComputedStyle(document.body);
+    const textColor = style.getPropertyValue('--primary-text-color') || '#212121';
+    const dividerColor = style.getPropertyValue('--divider-color') || 'rgba(0,0,0,0.12)';
+
+    const labels = data.map(d => new Date(d.datetime));
+    const tempHigh = data.map(d => d.temperature);
+    const tempLow = data.map(d => d.templow);
+    const precip = data.map(d => d.precipitation || 0);
+    const mode = this.mode;
+    const locale = this.lang;
+    const tempUnit = this._hass.config.unit_system.temperature;
+    const precipUnit = this._hass.config.unit_system.length === 'km' ? 'mm' : 'in';
+
+    // Create gradients
+    const gradientHigh = ctx.createLinearGradient(0, 0, 0, 150);
+    gradientHigh.addColorStop(0, 'rgba(255, 99, 132, 0.3)');
+    gradientHigh.addColorStop(1, 'rgba(255, 99, 132, 0.0)');
+
+    const gradientLow = ctx.createLinearGradient(0, 0, 0, 150);
+    gradientLow.addColorStop(0, 'rgba(75, 192, 192, 0.3)');
+    gradientLow.addColorStop(1, 'rgba(75, 192, 192, 0.0)');
+
+    this.chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: this.ll('tempHi'),
+            type: 'line',
+            data: tempHigh,
+            borderColor: "#ff6384",
+            backgroundColor: gradientHigh,
+            borderWidth: 2.5,
+            tension: 0.4,
+            pointRadius: 2,
+            pointBackgroundColor: "#ff6384",
+            pointBorderColor: "#fff",
+            pointBorderWidth: 2,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: "#ff6384",
+            pointHoverBorderColor: "#fff",
+            pointHoverBorderWidth: 2,
+            fill: false,
+            yAxisID: 'yTempAxis'
+          },
+          {
+            label: this.ll('tempLo'),
+            type: 'line',
+            data: tempLow,
+            borderColor: "#4bc0c0",
+            backgroundColor: gradientLow,
+            borderWidth: 2.5,
+            tension: 0.4,
+            pointRadius: 3,
+            pointBackgroundColor: "#4bc0c0",
+            pointBorderColor: "#fff",
+            pointBorderWidth: 2,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: "#4bc0c0",
+            pointHoverBorderColor: "#fff",
+            pointHoverBorderWidth: 2,
+            fill: true,
+            yAxisID: 'yTempAxis'
+          },
+          {
+            label: this.ll('precip'),
+            type: 'bar',
+            data: precip,
+            backgroundColor: "rgba(54, 162, 235, 0.6)",
+            borderColor: "#36a2eb",
+            borderWidth: 0,
+            borderRadius: 4,
+            yAxisID: 'yPrecipAxis'
+          }
+        ]
+      },
+      options: {
+        animation: false,
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleColor: '#fff',
+            bodyColor: '#fff',
+            borderColor: dividerColor,
+            borderWidth: 1,
+            padding: 12,
+            displayColors: true,
+            usePointStyle: true,
+            callbacks: {
+              title: function(context) {
+                const date = new Date(context[0].parsed.x);
+                if (mode == 'hourly') {
+                  return date.toLocaleTimeString(locale, { weekday: 'short', hour: 'numeric', hour12:false });
+                }
+                return date.toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' });
+              },
+              label: function(context) {
+                let label = context.dataset.label || '';
+                if (label) label += ': ';
+                label += context.parsed.y;
+                if (context.datasetIndex < 2) {
+                  label += ' ' + tempUnit;
+                } else {
+                  label += ' ' + precipUnit;
+                }
+                return label;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: 'time',
+            position: 'top',
+            time: {
+              unit: mode === 'hourly' ? 'hour' : 'day',
+              displayFormats: {
+                hour: 'HH:mm',
+                day: 'EEE'
+              }
+            },
+            grid: {
+              display: true,
+              drawBorder: false,
+              color: dividerColor,
+            },
+            ticks: {
+              display: true,
+              autoSkip: true,
+              color: textColor,
+              maxRotation: 0,
+            }
+          },
+          yTempAxis: {
+            position: 'left',
+            grid: {
+              display: true,
+              drawBorder: false,
+              color: dividerColor,
+              borderDash: [1,3],
+            },
+            ticks: {
+              display: true,
+              color: textColor,
+            },
+            afterFit: function(scaleInstance) {
+              scaleInstance.width = 25;
+            }
+          },
+          yPrecipAxis: {
+            display: false,
+            position: 'right',
+            suggestedMax: 20,
+            grid: {
+              display: false,
+              drawBorder: false,
+            },
+            ticks: {
+              display: false,
+              min: 0,
+            },
+            afterFit: function(scaleInstance) {
+              scaleInstance.width = 15;
+            }
+          }
+        }
+      }
+    });
   }
 
   static get styles() {
@@ -150,6 +378,16 @@ class DhmzWeatherCard extends LitElement {
           text-align: left;
           font-size: 12px;
         }
+        .chart-container {
+          margin: 10px 0;
+          height: 150px;
+          width: 100%;
+          position: relative;
+        }
+        #weather-chart {
+          width: 100% !important;
+          height: 100% !important;
+        }
         .conditions {
           display: flex;
           justify-content: space-between;
@@ -188,6 +426,10 @@ class DhmzWeatherCard extends LitElement {
   }
 
   render() {
+    if (!this.weatherObj || !this.weatherObj.attributes) {
+      return html`<ha-card header="${this.title}"><div class="card">Loading...</div></ha-card>`;
+    }
+
     return html`
         <ha-card header="${this.title}">
           <div class="card">
@@ -218,11 +460,13 @@ class DhmzWeatherCard extends LitElement {
               <div class="forecast_text"><div class="text">${this.weatherObj.attributes.forecast_today}</div></div>`
               : html ``
             }
-            <ha-chart-base .hass=${this._hass} .data=${this.ChartData} .options=${this.ChartOptions} chart-type="bar"></ha-chart-base>
+            <div class="chart-container">
+              <canvas id="weather-chart"></canvas>
+            </div>
             <div class="conditions">
-            ${this.forecast.map(one_forecast => 
+            ${this.forecast ? this.forecast.map(one_forecast => 
                 html `<ha-icon class="conditions" style="background-image: url(https://meteo.hr/assets/images/icons/${one_forecast.weather_symbol}.svg)"></ha-icon>`
-            )}
+            ) : ''}
             </div>
             ${ this.show_tomorrow_text ?
               html `<div class="forecast_text"><div class="label">Sutra:</div></div>
@@ -242,13 +486,11 @@ class DhmzWeatherCard extends LitElement {
         mode: String,
         weatherObj: {
           type: Object,
-          observer: this.dataChanged
+          hasChanged: function(newVal, oldVal) {
+            return JSON.stringify(newVal) !== JSON.stringify(oldVal);
+          }
         }
       };
-    }
-
-    dataChanged() {
-      this.drawChart();
     }
   
     roundNumber(number) {
@@ -280,198 +522,6 @@ class DhmzWeatherCard extends LitElement {
   
     getWindDirIcon(direction) {
       return this.cardinalDirectionsIcon[direction];
-    }
-  
-    drawChart() {
-      var data = this.weatherObj.attributes.forecast_list.slice(0,29);
-      var locale = this._hass.selectedLanguage || this._hass.language;
-      var tempUnit = this._hass.config.unit_system.temperature;
-      var lengthUnit = this._hass.config.unit_system.length;
-      var precipUnit = lengthUnit === 'km' ? this.ll('uPrecip') : 'in';
-      var mode = this.mode;
-      var i;
-      if (!this.weatherObj.attributes.forecast_list) {
-        return [];
-      }
-      var dateTime = [];
-      var tempHigh = [];
-      var tempLow = [];
-      var precip = [];
-      for (i = 0; i < data.length; i++) {
-        var d = data[i];
-        dateTime.push(new Date(d.datetime));
-        tempHigh.push(d.temperature);
-        tempLow.push(d.templow);
-        if ( d.precipitation == 0.0 ) {
-          precip.push(null);
-        }
-        else {
-          precip.push(d.precipitation);
-        }
-      }
-      var style = getComputedStyle(document.body);
-      var textColor = style.getPropertyValue('--primary-text-color');
-      var dividerColor = style.getPropertyValue('--divider-color');
-      const chartType = 'bar';
-      const chartData = {
-        labels: dateTime,
-        datasets: [
-          {
-            label: this.ll('tempHi'),
-            type: 'line',
-            data: tempHigh,
-            xAxisID: "xDateAxis",
-            yAxisID: 'yTempAxis',
-            borderWidth: 2.0,
-            lineTension: 0.4,
-            pointRadius: 1.0,
-            pointHitRadius: 5.0,
-            borderColor: "#ff0029",
-            backgroundColor: "#ff0029",
-            fill: false,
-            tooltip: {
-              callbacks: {
-                title: function(context) {
-                  var label = context.dataset.label || '';
-                  return label += ': ' + context.parsed.y + ' ' + tempUnit;
-                },
-                label: function(context) {
-                  var label = context.dataset.label || '';
-                  return label += ': ' + context.parsed.y + ' ' + tempUnit;
-                }
-              }
-            }            
-          },
-          {
-            label: this.ll('tempLo'),
-            type: 'line',
-            data: tempLow,
-            xAxisID: "xDateAxis",
-            yAxisID: 'yTempAxis',
-            borderWidth: 2.0,
-            lineTension: 0.4,
-            pointRadius: 1.0,
-            pointHitRadius: 5.0,
-            borderColor: "#66a61e",
-            backgroundColor: "#66a61e",
-            fill: false,
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  var label = context.dataset.label || '';
-                  return label += ': ' + context.parsed.y + ' ' + tempUnit;
-                }
-              }
-            }
-          },
-          {
-            label: this.ll('precip'),
-            type: 'bar',
-            data: precip,
-            barThickness: 8,
-            maxBarThickness: 15,
-            xAxisID: "xDateAxis",
-            yAxisID: 'yPrecipAxis',
-            borderColor: "#262889",
-            backgroundColor: "#262889",
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  var label = context.dataset.label || '';
-                  return label += ': ' + context.parsed.y + ' ' + precipUnit;
-                }
-              }
-            }            
-          },
-        ]
-      };
-      const chartOptions = {
-        animation: false,
-        legend: {
-          display: false,
-        },
-        scales: {
-          xDateAxis: {
-            type: 'time',
-            position: 'top',
-            adapters: {
-              date: {
-                locale: this._hass.locale,
-                config: this._hass,
-              },
-            },
-            grid: {
-              display: true,
-              drawBorder: false,
-              color: dividerColor,
-            },
-            ticks: {
-              display: true,
-              source: 'labels',
-              autoSkip: true,
-              fontColor: textColor,
-              maxRotation: 0,
-              callback: function(value, index, values) {
-                var date = new Date(0);
-                date.setUTCMilliseconds(values[index].value);
-                if (mode == 'hourly') {
-                  return date.toLocaleTimeString(locale, { weekday: 'short', hour: 'numeric', hour12:false });
-                }
-                return date.toLocaleDateString(locale, { weekday: 'short' });
-              },
-            },
-          },
-          yTempAxis: {
-            position: 'left',
-            adapters: {
-              date: {
-                locale: this._hass.locale,
-                config: this._hass,
-              },
-            },
-            grid: {
-              display: true,
-              drawBorder: false,
-              color: dividerColor,
-              borderDash: [1,3],
-            },
-            ticks: {
-              display: true,
-              fontColor: textColor,
-            },
-            afterFit: function(scaleInstance) {
-              scaleInstance.width = 25;
-            },
-          },
-          yPrecipAxis: {
-            display: false,
-            position: 'right',
-            suggestedMax: 20,
-            adapters: {
-              date: {
-                locale: this._hass.locale,
-                config: this._hass,
-              },
-            },
-            grid: {
-              display: false,
-              drawBorder: false,
-              color: dividerColor,
-            },
-            ticks: {
-              display: false,
-              min: 0,
-              fontColor: textColor,
-            },
-            afterFit: function(scaleInstance) {
-              scaleInstance.width = 15;
-            },
-          },
-        },
-      };
-      this.ChartType = chartType;
-      this.ChartData = chartData;
-      this.ChartOptions = chartOptions;
     }
   
     _fire(type, detail, options) {

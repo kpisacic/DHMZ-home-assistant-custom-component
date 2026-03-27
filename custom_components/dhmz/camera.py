@@ -27,8 +27,8 @@ CONF_SHOW_LOCATION = "mark_location"
 CONF_IMAGE_FORMAT = "image_format"
 
 RADAR_MAP_URL_STATIC = "https://vrijeme.hr/kompozit-stat.png"
-RADAR_MAP_URL_ANIM = "https://vrijeme.hr/radari/anim_kompozit{index}.png"
-RADAR_MAP_URL_ANIM_GIF = "http://vrijeme.hr/anim_kompozit.gif"
+RADAR_MAP_URL_ANIM = "https://prognoza.hr/karte/radar/anim_kompozit{index}.png"
+RADAR_MAP_URL_ANIM_GIF = "https://vrijeme.hr/anim_kompozit.gif"
 
 _LOG = logging.getLogger(__name__)
 

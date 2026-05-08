@@ -46,7 +46,7 @@ DEFAULT_NAME = "dhmz"
 CURRENT_SITUATION_API_URL = "https://vrijeme.hr/hrvatska_n.xml"
 PRECIPITATION_API_URL = "https://vrijeme.hr/oborina.xml"
 FORECAST_TODAY_API_URL = "https://prognoza.hr/prognoza_danas.xml"
-FORECAST_TOMMOROW_API_URL = "https://prognoza.hr/prognoza_sutra.xml"
+FORECAST_TOMORROW_API_URL = "https://prognoza.hr/prognoza_sutra.xml"
 FORECAST_3DAYS_API_URL = "https://prognoza.hr/tri/3d_graf_i_simboli.xml"
 FORECAST_7DAYS_API_URL = "https://prognoza.hr/sedam/hrvatska/7d_meteogrami.xml"
 
@@ -71,7 +71,7 @@ SENSOR_TYPES = {
     "precipitation_update_timestamp": ("Precipitation Update Timestamp", None, "Update", str, "kolicina_timestamp", [], "mdi:update", "timestamp", ""),
     # forecast texts
     "forecast_text_today": ("Today forecast", "", "", str, "PrognozaDanas", [], "mdi:calendar-today", "", ""),
-    "forecast_text_tommorow": ("Today forecast", "", "", str, "PrognozaSutra", [], "mdi:calendar-blank", "", ""),
+    "forecast_text_tomorrow": ("Today forecast", "", "", str, "PrognozaSutra", [], "mdi:calendar-blank", "", ""),
 }
 
 FORECAST_DAILY_TYPES = {
@@ -159,7 +159,7 @@ class DhmzSensor(Entity):
     @property
     def state(self):
         """Return the state of the sensor."""
-        if (self.variable == "forecast_text_today") or (self.variable == "forecast_text_tommorow"):
+        if (self.variable == "forecast_text_today") or (self.variable == "forecast_text_tomorrow"):
             return self.probe.get_data(SENSOR_TYPES[self.variable][4])[:255]
         else:
             return self.probe.get_data(SENSOR_TYPES[self.variable][4])
@@ -313,7 +313,7 @@ class DhmzData:
             _LOGGER.debug("Refreshing forecast_daily - prognoza_sutra.xml")
             elems_tm = {}
             # get "prognoza_sutra.xml"
-            tree = etree.parse(urlopen(FORECAST_TOMMOROW_API_URL))
+            tree = etree.parse(urlopen(FORECAST_TOMORROW_API_URL))
             val_condition = tree.xpath("//VW/section/station[@name='" + self._forecast_region_name + "']/param[@name='vrijeme']/@value")[0]
             val_temp_min = tree.xpath("//VW/section/station[@name='" + self._forecast_region_name + "']/param[@name='Tmn']/@value")[0]
             val_temp_max = tree.xpath("//VW/section/station[@name='" + self._forecast_region_name + "']/param[@name='Tmx']/@value")[0]

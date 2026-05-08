@@ -470,7 +470,7 @@ class DhmzWeatherCard extends LitElement {
             </div>
             ${ this.show_tomorrow_text ?
               html `<div class="forecast_text"><div class="label">Sutra:</div></div>
-              <div class="forecast_text"><div class="text">${this.weatherObj.attributes.forecast_tommorow}</div></div>`
+              <div class="forecast_text"><div class="text">${this.weatherObj.attributes.forecast_tomorrow}</div></div>`
               : html ``
             }
           </div>

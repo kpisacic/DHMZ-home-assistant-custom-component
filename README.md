@@ -104,7 +104,7 @@ sensor:
       - condition
       - precipitation
       - forecast_text_today
-      - forecast_text_tommorow
+      - forecast_text_tomorrow
 ```
 
 - A sensor will be created for each of the following conditions, with a default name like `sensor.<name>_temperature`:     
@@ -117,7 +117,7 @@ sensor:
     - `wind_bearing` - The current cardinal wind direction, e.g. "SSW".
     - `precipitation` - precipitation in last 24 hours, in mm.
     - `forecast_text_today` - A textual description of today's forecast
-    - `forecast_text_tommorow` - A textual description of tommorow's forecast
+    - `forecast_text_tomorrow` - A textual description of tomorrow's forecast
 
 *Configuration*
 - name:
@@ -153,7 +153,7 @@ sensor:
       - condition
       - precipitation
       - forecast_text_today
-      - forecast_text_tommorow
+      - forecast_text_tomorrow
 
 ## Camera
 

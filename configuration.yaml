@@ -36,7 +36,7 @@ sensor:
       - condition
       - precipitation
       - forecast_text_today
-      - forecast_text_tommorow
+      - forecast_text_tomorrow
 
 weather:
   - platform: dhmz

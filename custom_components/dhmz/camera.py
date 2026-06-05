@@ -7,7 +7,7 @@ from typing import Optional
 import aiohttp
 import voluptuous as vol
 from io import BytesIO
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageSequence
 
 from homeassistant.components.camera import PLATFORM_SCHEMA, Camera
 from homeassistant.const import CONF_NAME, CONF_LATITUDE, CONF_LONGITUDE
@@ -120,6 +120,8 @@ class DhmzRadar(Camera):
                 "etag": "",
                 "last_modified": None
             } for i in range(25) ]
+        self._last_gif_modified = None
+        self._last_gif_etag = None
 
     @property
     def name(self) -> str:
@@ -130,6 +132,23 @@ class DhmzRadar(Camera):
     def entity_picture(self):
         """Return a link to the camera feed as entity picture."""
         return RADAR_MAP_URL_STATIC
+
+    @property
+    def content_type(self) -> str:
+        """Return the content type of the image."""
+        if self._last_image:
+            if self._last_image.startswith(b"GIF8"):
+                return "image/gif"
+            if self._last_image.startswith(b"RIFF") and b"WEBP" in self._last_image[:16]:
+                return "image/webp"
+            if self._last_image.startswith(b"\x89PNG\r\n\x1a\n"):
+                return "image/png"
+        return "image/jpeg"
+
+    @content_type.setter
+    def content_type(self, value) -> None:
+        """Set the content type of the image (no-op)."""
+        pass
 
     def __needs_refresh(self) -> bool:
         if not (self._delta and self._deadline and self._last_image):
@@ -175,123 +194,106 @@ class DhmzRadar(Camera):
         return True
 
     async def __retrieve_radar_image(self, width, height) -> bool:
-        """Retrieve new radar image and return whether this succeeded."""
+        """Retrieve animated GIF and return whether this succeeded."""
         session = async_get_clientsession(self.hass)
 
-        b_regenerate_needed = False
+        headers = {}
+        if self._last_gif_modified:
+            headers["If-Modified-Since"] = self._last_gif_modified
+        if self._last_gif_etag:
+            headers["If-None-Match"] = self._last_gif_etag
 
-        # check first image, header and etag
-        i = 0
+        _LOG.debug("GET url: %s", RADAR_MAP_URL_ANIM_GIF)
+        try:
+            res = await session.get(RADAR_MAP_URL_ANIM_GIF, timeout=10, headers=headers)
+            res.raise_for_status()
+        except (asyncio.TimeoutError, aiohttp.ClientError) as err:
+            _LOG.error("Failed to fetch DHMZ radar GIF: %s", err)
+            return False
 
-        if self._images[i]["last_modified"]:
-            headers = {"If-Modified-Since": self._images[i]["last_modified"] }
-        else:
-            headers = {}
+        if res.status == 304:
+            _LOG.debug("DHMZ radar GIF - HTTP 304 (not modified)")
+            return True
 
-        if self._images[i]["etag"] != "":
-            # get header to compare etag
-            _LOG.debug("HEAD url: %s", RADAR_MAP_URL_ANIM.format(index=i+1) )
-            try:
-                res = await session.head(RADAR_MAP_URL_ANIM.format(index=i+1) , timeout=5, headers=headers)
-                res.raise_for_status()
-            except (asyncio.TimeoutError, aiohttp.ClientError) as err:
-                _LOG.error("Failed to fetch header, %s", err)
-                return False
+        try:
+            current_content = await res.read()
+        except (asyncio.TimeoutError, aiohttp.ClientError) as err:
+            _LOG.error("Failed to read DHMZ radar GIF content: %s", err)
+            return False
 
-            if res.status == 304:
-                _LOG.debug("HEAD - HTTP 304 - success")
+        # Update cache headers
+        self._last_gif_modified = res.headers.get("last-modified")
+        self._last_gif_etag = res.headers.get("etag")
+
+        if not self._show_location:
+            if self._image_format and self._image_format.upper() == "WEBP":
+                # Convert GIF to WebP animation
+                try:
+                    im = Image.open(BytesIO(current_content))
+                    frames = []
+                    durations = []
+                    for frame in ImageSequence.Iterator(im):
+                        frames.append(frame.copy().convert("RGBA"))
+                        durations.append(frame.info.get('duration', 100))
+                    
+                    file_bytes_io = BytesIO()
+                    frames[0].save(
+                        file_bytes_io,
+                        format="WEBP",
+                        save_all=True,
+                        append_images=frames[1:],
+                        optimize=True,
+                        duration=durations,
+                        loop=0
+                    )
+                    self._last_image = file_bytes_io.getvalue()
+                    _LOG.debug("Converted DHMZ radar GIF to WebP animation")
+                    return True
+                except Exception as err:
+                    _LOG.error("Failed to convert GIF to WebP: %s", err)
+                    self._last_image = current_content
+                    return True
             else:
-                etag = res.headers.get("etag", None)
-                if etag:
-                    _LOG.debug("HEAD image - etag: %s", etag)
-                    j = 0
-                    while j < 25 and self._images[0]["etag"] != "":
-                        # Check etag of first image in stack
-                        if self._images[0]["etag"][-5:] != etag[-5:]:
-                            # If etag differs, remove image from stack, and append empty image position
-                            i_removed = self._images.pop(0)
-                            _LOG.debug("Removed etag: %s", i_removed["etag"])
-                            self._images.append({   "content_length": 0,
-                                                    "etag": "",
-                                                    "last_modified": None })
-                            self._images_content.pop(0)
-                            self._images_content.append(None)
-                            j += 1
-                        else:
-                            break
+                self._last_image = current_content
+                return True
 
-        for i in range(25):
-
-            # refresh images with empty etag (not fetched by now) and last image always
-            if self._images[i]["etag"] == "" or i == 24:
-
-                if self._images[i]["last_modified"]:
-                    headers = {"If-Modified-Since": self._images[i]["last_modified"] }
-                else:
-                    headers = {}
+        # Process frames to draw location marker
+        try:
+            im = Image.open(BytesIO(current_content))
+            frames = []
+            durations = []
+            
+            for frame in ImageSequence.Iterator(im):
+                frame_copied = frame.copy().convert("RGBA")
+                draw = ImageDraw.Draw(frame_copied)
                 
-                _LOG.debug("GET url: %s", RADAR_MAP_URL_ANIM.format(index=i+1) )
-                try:
-                    res = await session.get( RADAR_MAP_URL_ANIM.format(index=i+1) , timeout=5, headers=headers)
-                    res.raise_for_status()
-                except (asyncio.TimeoutError, aiohttp.ClientError) as err:
-                    _LOG.error("Failed to fetch get, %s", err)
-                    return False
-
-                if res.status == 304:
-                    _LOG.debug("GET - HTTP 304 - success")
-                    continue
-
-                try:
-                    current_content = await res.read()
-                except (asyncio.TimeoutError, aiohttp.ClientError) as err:
-                    _LOG.error("Failed to read content, %s", err)
-                    return False
-
-                try:
-                    self._images_content[i] = Image.open(BytesIO(current_content))
-                    if self._show_location:
-                        draw = ImageDraw.Draw(self._images_content[i])
-                        x_coord = int( ( 0.11346541830650277 * self._longitude - 1.3351816168381 ) * float(self._images_content[i].size[0]) )
-                        y_coord = int( (-0.15304197356993342 * self._latitude + 7.31403749212996 ) * float(self._images_content[i].size[1]) )
-                        draw.ellipse((x_coord-5,y_coord-5,x_coord+5,y_coord+5), fill=(0,0,0), outline=(0,0,0))
-                except OSError as err:
-                    _LOG.error("OSError drawing on image: %s", RADAR_MAP_URL_ANIM.format(index=i+1) )
-                    return False
-
-                last_modified = res.headers.get("last-modified")
-                if last_modified:
-                    self._images[i]["last_modified"] = last_modified
-
-                etag = res.headers.get("etag", None)
-                if etag:
-                    self._images[i]["etag"] = etag
-
-                content_length = res.headers.get("content-length")
-                if content_length:
-                    self._images[i]["content_length"] = content_length
-
-                b_regenerate_needed = True
-
-                _LOG.debug("Stored image %s, etag: %s, content length: %s", i+1, etag, content_length)
-
-        # Build new animated image
-        if b_regenerate_needed:
+                x_coord = int((0.11346541830650277 * self._longitude - 1.3351816168381) * float(im.size[0]))
+                y_coord = int((-0.15304197356993342 * self._latitude + 7.31403749212996) * float(im.size[1]))
+                
+                # Draw marker
+                draw.ellipse((x_coord-4, y_coord-4, x_coord+4, y_coord+4), fill=(255, 0, 0), outline=(0, 0, 0))
+                
+                frames.append(frame_copied)
+                durations.append(frame.info.get('duration', 100))
+                
             file_bytes_io = BytesIO()
-            a_durations = [ self._previous_images_time for i in range(25)]
-            a_durations[24] = self._current_image_time
-            try:
-                self._images_content[0].save(file_bytes_io, format=self._image_format, save_all=True, append_images=self._images_content[1:], optimize=True, duration=a_durations, loop=0)
-            except (ValueError) as err:
-                _LOG.error("ValueError converting to animated image")
-            except (OSError) as err:
-                _LOG.error("OSError converting to animated image")
-
-            _LOG.debug("Converged to animated image done, size: %s", file_bytes_io.tell())
-
+            fmt = self._image_format if self._image_format else "GIF"
+            frames[0].save(
+                file_bytes_io,
+                format=fmt,
+                save_all=True,
+                append_images=frames[1:],
+                optimize=True,
+                duration=durations,
+                loop=0
+            )
             self._last_image = file_bytes_io.getvalue()
-
-        return True
+            _LOG.debug("Processed and saved DHMZ radar animation, format: %s", fmt)
+            return True
+        except Exception as err:
+            _LOG.error("Error drawing location on DHMZ radar GIF: %s", err)
+            self._last_image = current_content
+            return True
 
     async def async_camera_image(self, width: int = 0, height: int = 0) -> Optional[bytes]:
         """

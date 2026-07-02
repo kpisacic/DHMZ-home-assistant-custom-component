@@ -44,7 +44,7 @@ weather:
     station_name: Zagreb-Maksimir
     forecast_region_name: Zagreb
     forecast_text: zg_text
-    forecast_station_name: Zagreb_Maksimir
+    forecast_station_name: ZAGREB-MAKSIMIR
 
 camera:
   - platform: dhmz

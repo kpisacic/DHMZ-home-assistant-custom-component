@@ -47,8 +47,7 @@ CURRENT_SITUATION_API_URL = "https://vrijeme.hr/hrvatska_n.xml"
 PRECIPITATION_API_URL = "https://vrijeme.hr/oborina.xml"
 FORECAST_TODAY_API_URL = "https://prognoza.hr/prognoza_danas.xml"
 FORECAST_TOMORROW_API_URL = "https://prognoza.hr/prognoza_sutra.xml"
-FORECAST_3DAYS_API_URL = "https://prognoza.hr/tri/3d_graf_i_simboli.xml"
-FORECAST_7DAYS_API_URL = "https://prognoza.hr/sedam/hrvatska/7d_meteogrami.xml"
+FORECAST_7DAYS_API_URL = "https://meteo.hr/7d_graf_i_simboli.xml"
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=15)
 
@@ -348,10 +347,10 @@ class DhmzData:
         """Fetch and parse the latest daily forecast XML data."""
         try:
             ret = []
-            _LOGGER.debug("Refreshing forecast_hourly - 7d_meteogrami.xml")
-            # get forecast weather "7d_meteogrami.xml"
+            _LOGGER.debug("Refreshing forecast_hourly -7d_graf_i_simboli.xml")
+            # get forecast weather "7d_graf_i_simboli.xml"
             tree = etree.parse(urlopen(FORECAST_7DAYS_API_URL))
-            node_days = tree.xpath("//sedmodnevna_aliec/grad[@lokacija='" + self._forecast_station_name + "']/*")
+            node_days = tree.xpath("//sedamdana/grad[@code='" + self._forecast_station_name + "']/*")
             for node in node_days:
                 elems = {}
                 elems["vrijeme"] = node.xpath("simbol/text()")[0]

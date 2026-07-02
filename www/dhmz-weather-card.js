@@ -88,10 +88,14 @@ class DhmzWeatherCard extends LitElement {
     this.tempObj = this.config.temp in hass.states ? hass.states[this.config.temp] : null;
     
     if (this.weatherObj && this.weatherObj.attributes && this.weatherObj.attributes.forecast_list) {
-      var tmp_forecast = this.weatherObj.attributes.forecast_list.slice(0,29);
       this.forecast = [];
-      for (var i = 0; i < tmp_forecast.length; i+=2) {
-        this.forecast.push(tmp_forecast[i]);
+      var lastDate = new Date("1970-01-01");
+      for(const elem of this.weatherObj.attributes.forecast_list) {
+        var tmpDate = new Date(elem.datetime);
+        if ( tmpDate >= lastDate ) {
+          this.forecast.push(elem);
+          lastDate.setTime( tmpDate.getTime() + (12*60*60*1000) );
+        }
       }
       this.windBearing = this.weatherObj.attributes.wind_bearing;
       this.requestUpdate();
@@ -140,7 +144,7 @@ class DhmzWeatherCard extends LitElement {
     const canvas = this.shadowRoot.querySelector('#weather-chart');
     if (!canvas) return;
 
-    const data = this.weatherObj.attributes.forecast_list?.slice(0, 29);
+    const data = this.weatherObj.attributes.forecast_list;
     if (!data || data.length === 0) return;
 
     const ctx = canvas.getContext('2d');
@@ -183,11 +187,11 @@ class DhmzWeatherCard extends LitElement {
             data: tempHigh,
             borderColor: "#ff6384",
             backgroundColor: gradientHigh,
-            borderWidth: 2.5,
+            borderWidth: 2,
             tension: 0.4,
-            pointRadius: 2,
+            pointRadius: 1,
             pointBackgroundColor: "#ff6384",
-            pointBorderColor: "#fff",
+            pointBorderColor: gradientHigh,
             pointBorderWidth: 2,
             pointHoverRadius: 5,
             pointHoverBackgroundColor: "#ff6384",
@@ -206,13 +210,13 @@ class DhmzWeatherCard extends LitElement {
             tension: 0.4,
             pointRadius: 3,
             pointBackgroundColor: "#4bc0c0",
-            pointBorderColor: "#fff",
+            pointBorderColor: gradientLow,
             pointBorderWidth: 2,
             pointHoverRadius: 5,
             pointHoverBackgroundColor: "#4bc0c0",
             pointHoverBorderColor: "#fff",
             pointHoverBorderWidth: 2,
-            fill: true,
+            fill: false,
             yAxisID: 'yTempAxis'
           },
           {
@@ -221,7 +225,7 @@ class DhmzWeatherCard extends LitElement {
             data: precip,
             backgroundColor: "rgba(54, 162, 235, 0.6)",
             borderColor: "#36a2eb",
-            borderWidth: 0,
+            borderWidth: 1,
             borderRadius: 4,
             yAxisID: 'yPrecipAxis'
           }
@@ -312,7 +316,7 @@ class DhmzWeatherCard extends LitElement {
           yPrecipAxis: {
             display: false,
             position: 'right',
-            suggestedMax: 20,
+            suggestedMax: 10,
             grid: {
               display: false,
               drawBorder: false,
@@ -321,9 +325,6 @@ class DhmzWeatherCard extends LitElement {
               display: false,
               min: 0,
             },
-            afterFit: function(scaleInstance) {
-              scaleInstance.width = 15;
-            }
           }
         }
       }

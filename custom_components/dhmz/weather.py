@@ -317,7 +317,7 @@ class DhmzWeather(WeatherEntity, RestoreEntity):
 
     def _get_forecast(self) -> list[Forecast]:
         ret = []
-        for entry in self.dhmz_data.get_forecast_hourly():
+        for entry in (self.dhmz_data.get_forecast_hourly() or []):
             if entry.get("datetime") > datetime.now():
                 try:
                     s_cond = [ k for k, v in CONDITION_CLASSES.items() if entry.get("vrijeme") in v ][0]

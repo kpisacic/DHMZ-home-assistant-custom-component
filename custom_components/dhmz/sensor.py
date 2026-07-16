@@ -387,17 +387,27 @@ class DhmzData:
             return  # Not time to update yet; data is only hourly
 
         _LOGGER.debug("Doing sensor data update, last_update was: %s", self.last_update)
-        self._current_situation = self.current_situation()
-        if self._current_situation:
+        # DHMZ's XML feeds are intermittently malformed or truncated; on a failed
+        # fetch/parse the helpers below return None. Keep the last good data in
+        # that case instead of overwriting it with None. Previously a None
+        # forecast propagated to _get_forecast() and raised "NoneType is not
+        # iterable", which aborted the entity's state write and left the card and
+        # more-info dialog stuck on a spinner until the next good poll.
+        new_current = self.current_situation()
+        if new_current:
+            self._current_situation = new_current
             for dataline in self._current_situation:
                 self._data[dataline.tag] = dataline.text.strip()
 
-        self._forecast_daily = self.forecast_daily()
-        if self._forecast_daily:
+        new_daily = self.forecast_daily()
+        if new_daily:
+            self._forecast_daily = new_daily
             self._data["PrognozaDanas"] = self._forecast_daily[0]["text"]
             self._data["PrognozaSutra"] = self._forecast_daily[1]["text"]
 
-        self._forecast_hourly = self.forecast_hourly()
+        new_hourly = self.forecast_hourly()
+        if new_hourly:
+            self._forecast_hourly = new_hourly
 
         _LOGGER.debug("Sensor, current data: %s", self._data)
         # _LOGGER.debug("DHMZ Sensor, current forecast daily: %s", self._forecast_daily)

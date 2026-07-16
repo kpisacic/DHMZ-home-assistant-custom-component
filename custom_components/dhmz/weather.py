@@ -24,6 +24,7 @@ from homeassistant.components.weather import (
 )
 from homeassistant.const import CONF_NAME, UnitOfTemperature, UnitOfPressure, UnitOfSpeed, UnitOfPrecipitationDepth
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.restore_state import RestoreEntity
 
 # Reuse data and API logic from the sensor implementation
 from .sensor import (
@@ -124,7 +125,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 
     add_entities([DhmzWeather(probe, name)], True)
 
-class DhmzWeather(WeatherEntity):
+class DhmzWeather(WeatherEntity, RestoreEntity):
     """Representation of a weather condition."""
 
     def __init__(self, dhmz_data, name):
@@ -132,8 +133,38 @@ class DhmzWeather(WeatherEntity):
         _LOGGER.debug("Initialized.")
         self.dhmz_data = dhmz_data
         self._name = name
-        self._state = self.format_condition(self.dhmz_data.get_data(SENSOR_TYPES["weather_symbol"][4]))
+        # DHMZ sends "-" (or nothing) when no current weather symbol is available,
+        # which happens routinely at night. Persist the last known-good symbol so
+        # the condition/icon don't flip to "exceptional" (see _resolve_symbol).
+        self._last_good_symbol = None
+        self._symbol = self._resolve_symbol()
+        self._state = self.format_condition(self._symbol)
         self._last_update = self.dhmz_data.last_update
+
+    def _resolve_symbol(self):
+        """Return the effective weather symbol, keeping the last known-good one.
+
+        DHMZ reports "-" (and occasionally an unrecognised code) when it has no
+        current symbol; both map to the "exceptional" condition. In that case we
+        reuse the last symbol that mapped to a real condition instead of showing
+        a misleading "exceptional".
+        """
+        raw = self.dhmz_data.get_data(SENSOR_TYPES["weather_symbol"][4])
+        if raw and self.format_condition(raw) != "exceptional":
+            self._last_good_symbol = raw
+            return raw
+        return self._last_good_symbol or raw
+
+    async def async_added_to_hass(self):
+        """Restore the last known-good symbol across restarts."""
+        await super().async_added_to_hass()
+        last_state = await self.async_get_last_state()
+        if last_state is not None:
+            sym = last_state.attributes.get("weather_symbol")
+            if sym and self.format_condition(sym) != "exceptional":
+                self._last_good_symbol = sym
+                self._symbol = self._resolve_symbol()
+                self._state = self.format_condition(self._symbol)
 
     def update(self):
         """Update current conditions."""
@@ -142,7 +173,8 @@ class DhmzWeather(WeatherEntity):
         if self._last_update != self.dhmz_data.last_update:
             _LOGGER.debug("Update - updated last date found.")
             self._last_update = self.dhmz_data.last_update
-            self._state = self.format_condition(self.dhmz_data.get_data(SENSOR_TYPES["weather_symbol"][4]))
+            self._symbol = self._resolve_symbol()
+            self._state = self.format_condition(self._symbol)
         else:
             _LOGGER.debug("Update - no update found.")
 
@@ -163,13 +195,13 @@ class DhmzWeather(WeatherEntity):
     @property
     def condition(self):
         """Return the current condition."""
-        return self.format_condition(self.dhmz_data.get_data(SENSOR_TYPES["weather_symbol"][4]))
+        return self.format_condition(self._symbol)
 
     @property
     def entity_picture(self):
         """Weather symbol if type is condition."""
         return (
-            "https://meteo.hr/assets/images/icons/{0}.svg".format(self.dhmz_data.get_data(SENSOR_TYPES["weather_symbol"][4]))
+            "https://meteo.hr/assets/images/icons/{0}.svg".format(self._symbol)
         )
 
     @property
@@ -182,7 +214,7 @@ class DhmzWeather(WeatherEntity):
         """Return the state attributes."""
         ret = {
             "condition": self.dhmz_data.get_data(SENSOR_TYPES["condition"][4]),
-            "weather_symbol": self.dhmz_data.get_data(SENSOR_TYPES["weather_symbol"][4]),
+            "weather_symbol": self._symbol,
             ATTR_STATION: self.dhmz_data.get_data(SENSOR_TYPES["station_name"][4]),
             ATTR_UPDATED: self.dhmz_data.last_update.isoformat(),
             "pressure_tendency": self.dhmz_data.get_data(SENSOR_TYPES["pressure_tendency"][4]),

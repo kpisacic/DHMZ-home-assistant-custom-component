@@ -335,78 +335,328 @@ Attribute `show_tomorrow_text` - shows tomorrow's text forecast (true|false), de
 
 ## forecast_station_name
 
-    Beli_Manastir
-    Bilogora
-    Bjelovar
-    Cavtat
-    Cakovec
-    Zracna_luka_Dubrovni
-    Daruvar
-    Delnice
-    Donji_Miholjac
-    Dubrovnik
-    Dakovo
-    Fuzine
-    Glina
-    Gospic
-    Gracac
-    Gradiste
-    Hreljin
-    Hrvatska_Kostajnica
-    Hvar
-    Ilok
-    Imotski
-    Karlovac
-    Knin
-    Komiza
-    Koprivnica
-    Korcula
-    Krapina
-    Krizevci
-    Krk
-    Lastovo
-    Mali_Losinj
-    Makarska
-    Maslenica
-    Metkovic
-    Korita-NP_Mljet
-    Most_Krk
-    Nasice
-    Nin
-    Nova_Gradiska
-    Novska
-    Ogulin
-    Orebic
-    Osijek
-    Pag
-    Palagruza
-    cabar
-    Pazin
-    NP_Plitvicka_jezera
-    Ploce
-    Pokupsko
-    Porec
-    Pozega
-    Pula
-    Rab
-    Rijeka
-    Rovinj
-    Rupa
-    Senj
-    Sinj
-    Sisak
-    Slatina
-    Slavonski_Brod
-    Slunj
-    Split
-    Sibenik
-    Udbina
-    Varazdin
-    Vela_Luka
-    Vinkovci
-    Virovitica
-    Vukovar
-    Zadar
-    Zagreb_Maksimir
+    BABINA GREDA
+    BAKAR
+    BAŠKA
+    BAŠKA VODA
+    BAŠKE OŠTARIJE
+    BEDNJA
+    BEGOVO RAZDOLJE
+    BELI MANASTIR
+    BELIŠĆE
+    BENKOVAC
+    BILOGORA
+    BIOGRAD NA MORU
+    BISKO
+    BISTRA
+    BIZOVAC
+    BIŠEVO
+    BJELOVAR
+    BLATO NA KORČULI
+    BOL
+    BOSILJEVO
+    BOŽAVA
+    BRELA
+    BREZNIČKI HUM
+    BRINJE
+    BRODSKI STUPNIK
+    BUJE
+    BUZET
+    CAVTAT
+    CISTA PROVO
+    CRES
+    CRIKVENICA
+    ČABAR
+    ČAKOVEC
+    ČAVLE
+    ČAZMA
+    ČAČINCI
+    DALJ
+    DARDA
+    DARUVAR
+    DAVOR
+    DELNICE
+    DONJA DUBRAVA
+    DONJA STUBICA
+    DONJI LAPAC
+    DONJI MIHOLJAC
+    DRNIŠ
+    DRVENIK
+    DUBROVNIK
+    DUGA RESA
+    DUGO SELO
+    DUGOPOLJE
+    DVOR NA UNI
+    ĐAKOVO
+    ĐURMANEC
+    ĐURĐEVAC
+    FAŽANA
+    FUŽINE
+    GAREŠNICA
+    GENERALSKI STOL
+    GLINA
+    GORIČAN
+    GORNJA PLOČA
+    GOSPIĆ
+    GOVEĐARI U MORU
+    GRADAC
+    GRADINA
+    GRADIŠTE
+    GRAČAC
+    GROŽNJAN
+    GRUBIŠNO POLJE
+    GRUDA
+    GUNJA
+    GVOZD
+    HRELJIN
+    HRVATSKA DUBICA
+    HRVATSKA KOSTAJNICA
+    HVAR
+    ILOK
+    IMOTSKI
+    IST
+    IVANEC
+    IVANIĆ GRAD
+    JABLANAC
+    JASENOVAC
+    JASTREBARSKO
+    JELENJE
+    JELSA
+    JOSIPDOL
+    KANFANAR
+    KARLOBAG
+    KARLOVAC
+    KASTAV
+    KLANJEC
+    KLEK
+    KLOŠTAR PODRAVSKI
+    KNIN
+    KOLOČEP
+    KOMIN
+    KOMIŽA
+    KOPRIVNICA
+    KORENICA
+    KORČULA
+    KOSTRENA
+    KRALJEVICA
+    KRAPINA
+    KRASNO POLJE
+    KRAVARSKO
+    KRIŽEVCI
+    KRIŽIŠĆE
+    KRK
+    KUKULJANOVO
+    KUNA
+    KUTINA
+    KUTJEVO
+    LABIN
+    LASTOVO
+    LEKENIK
+    LIPIK
+    LIPOVAC
+    LIČKI OSIK
+    LOPAR
+    LOPUD
+    LOVRAN
+    LOVREĆ
+    LUBENICE
+    LUDBREG
+    LUMBARDA
+    LUPOGLAV
+    MACELJ
+    MAKARSKA
+    MALI LOŠINJ
+    MALINSKA
+    MARIJA BISTRICA
+    MASLENICA
+    MATULJI
+    MEDULIN
+    METKOVIĆ
+    MILNA
+    MOLAT
+    MOLVE
+    MOST KRK
+    MOST PAG
+    MOTOVUN
+    MOŠĆENIČKA DRAGA
+    MRKOPALJ
+    MURSKO SREDIŠĆE
+    MURTER
+    NAŠICE
+    NEREZINE
+    NIN
+    NOVA GRADIŠKA-CERNIK
+    NOVA KAPELA
+    NOVALJA
+    NOVI MAROF
+    NOVI VINODOLSKI
+    NOVIGRAD - ISTRA
+    NOVSKA
+    NP BRIJUNI
+    NP KORNATI
+    NP KRKA - LOZOVAC
+    NP MLJET - KORITA
+    NP PAKLENICA - STARIGRAD
+    NP PLITVIČKA JEZERA
+    NP RISNJAK - CRNI LUG
+    OBROVAC
+    OGULIN
+    OKUČANI
+    OLIB
+    OMIŠ
+    OPATIJA
+    OPUZEN
+    ORAHOVICA
+    OREBIĆ
+    OSIJEK
+    OTOČAC
+    OZALJ
+    PAG
+    PAKOŠTANE
+    PAKRAC
+    PALAGRUŽA
+    PAZIN
+    PERUŠIĆ
+    PETRINJA
+    PIROVAC
+    PISAROVINA
+    PITOMAČA
+    PLETERNICA
+    PLOČE
+    PODSTRANA
+    PODSUSED
+    POKUPSKO
+    POLAČA
+    POPOVAČA
+    POREČ
+    POROZINA
+    POSEDARJE
+    POSTIRA
+    POVILE
+    POVLJA
+    POVLJANA
+    POŽEGA
+    PP UČKA
+    PREGRADA
+    PRELOG
+    PREVLAKA
+    PRGOMET
+    PRIMOŠTEN
+    PRIZNA
+    PULA
+    PUNTIJARKA
+    RAB
+    RAVNA GORA
+    RAVČA
+    RAŽANAC
+    RIJEKA
+    ROGOTIN
+    ROGOZNICA
+    ROVINJ
+    RUGVICA
+    RUPA
+    SALI
+    SAMOBOR
+    SAVUDRIJA
+    SELCE
+    SENJ
+    SESVETE
+    SEVERIN NA KUPI
+    SILBA
+    SINJ
+    SISAK
+    SKRAD
+    SKRADIN
+    SLANO
+    SLATINA
+    SLAVONSKI BROD
+    SLAVONSKI ŠAMAC
+    SLUNJ
+    SOLIN
+    SPLIT
+    SREDANCI
+    STARIGRAD - HVAR
+    STON
+    STRUŽEC
+    SUHOPOLJE
+    SUKOŠAN
+    SUMARTIN
+    SUPETAR
+    SUTIVAN
+    SV. IVAN ZELINA
+    SV. IVAN ŽABNO
+    SV. KRIŽ ZAČRETJE
+    SV. MARTIN NA MURI
+    SV. NEDJELJA
+    SVETI ROK
+    ŠESTANOVAC
+    ŠIBENIK
+    ŠOLTA
+    TISNO
+    TKON
+    TOPUSKO
+    TOVARNIK
+    TRAKOŠĆAN
+    TRIBUNJ
+    TRILJ
+    TROGIR
+    TRSTENIK
+    TRSTENO
+    TUHELJ
+    TUČEPI
+    UDBINA
+    UGLJAN
+    UMAG
+    UNIJE
+    URINJ
+    USKOPLJE
+    VALPOVO
+    VARAŽDIN
+    VARAŽDINSKE TOPLICE
+    VARDARAC
+    VELA LUKA
+    VELIKA
+    VELIKA GORICA
+    VELIKO TRGOVIŠĆE
+    VINKOVCI
+    VIR
+    VIRJE
+    VIROVITICA
+    VIS
+    VODICE - DALMACIJA
+    VODNJAN
+    VOJNIĆ
+    VRBOVEC
+    VRBOVSKO
+    VRGORAC
+    VRLIKA
+    VRPOLJE - ŠIBENIK
+    VRSAR
+    VUKOVA GORICA
+    VUKOVAR
+    ZABOK
+    ZADAR
+    ZAGREB-GRIČ
+    ZAGREB-MAKSIMIR
+    ZAGREB-NOVI ZAGREB
+    ZAGVOZD
+    ZAPREŠIĆ
+    ZATON OBROVAČKI
+    ZAVIŽAN
+    ZLARIN
+    ZLATAR
+    ZRAČNA LUKA DUBROVNIK
+    ZRAČNA LUKA MALI LOŠINJ
+    ZRAČNA LUKA OSIJEK
+    ZRAČNA LUKA PULA
+    ZRAČNA LUKA RIJEKA
+    ZRAČNA LUKA SPLIT
+    ZRAČNA LUKA ZADAR
+    ZRAČNA LUKA ZAGREB
+    ŽIRJE
+    ŽIVOGOŠĆE
+    ŽMINJ
+    ŽRNOVNICA
+    ŽUPANJA
     Zavizan
     Zracna_luka_Zadar

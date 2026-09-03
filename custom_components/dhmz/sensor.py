@@ -4,6 +4,7 @@ import gzip
 import json
 import logging
 import os
+import ssl
 from urllib.request import urlopen, URLError, HTTPError
 from http.client import RemoteDisconnected
 from lxml import etree
@@ -48,6 +49,28 @@ PRECIPITATION_API_URL = "https://vrijeme.hr/oborina.xml"
 FORECAST_TODAY_API_URL = "https://prognoza.hr/prognoza_danas.xml"
 FORECAST_TOMORROW_API_URL = "https://prognoza.hr/prognoza_sutra.xml"
 FORECAST_7DAYS_API_URL = "https://meteo.hr/7d_graf_i_simboli.xml"
+
+
+def _urlopen(url):
+    """Open a DHMZ feed URL, falling back to HTTP if the TLS certificate is invalid.
+
+    DHMZ periodically mis-serves an invalid certificate on vrijeme.hr (a certificate
+    issued for a different host), which breaks HTTPS verification. These feeds are
+    public and unauthenticated, so fall back to HTTP in that case rather than losing all
+    data until DHMZ fixes their certificate.
+    """
+    try:
+        return urlopen(url)
+    except URLError as err:
+        reason = getattr(err, "reason", None)
+        if url.startswith("https://") and isinstance(reason, ssl.SSLError):
+            fallback = "http://" + url[len("https://") :]
+            _LOGGER.warning(
+                "Invalid TLS certificate for %s; falling back to %s", url, fallback
+            )
+            return urlopen(fallback)
+        raise
+
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=15)
 
@@ -249,7 +272,7 @@ class DhmzData:
             _LOGGER.debug("Refreshing current_situation - hrvatska_n.xml")
             elems = []
             # get current weather "hrvatska_n.xml"
-            tree = etree.parse(urlopen(CURRENT_SITUATION_API_URL))
+            tree = etree.parse(_urlopen(CURRENT_SITUATION_API_URL))
             elems = tree.xpath("//Hrvatska/Grad[GradIme='" + self._station_name + "']/Podatci/*")
             elem_lat = tree.xpath("//Hrvatska/Grad[GradIme='" + self._station_name + "']/Lat")
             elem_lon = tree.xpath("//Hrvatska/Grad[GradIme='" + self._station_name + "']/Lon")
@@ -263,7 +286,7 @@ class DhmzData:
 
             _LOGGER.debug("Refreshing current_situation - oborine.xml")
             # get precipitation "oborine.xml"
-            tree = etree.parse(urlopen(PRECIPITATION_API_URL))
+            tree = etree.parse(_urlopen(PRECIPITATION_API_URL))
             elem_kisa = tree.xpath("//dnevna_oborina/grad[ime='" + self._station_name + "']/kolicina")
             if elem_kisa: 
                 elems.extend(elem_kisa)
@@ -294,7 +317,7 @@ class DhmzData:
             ret = []
             elems = {}
             # get "prognoza_danas.xml"
-            tree = etree.parse(urlopen(FORECAST_TODAY_API_URL))
+            tree = etree.parse(_urlopen(FORECAST_TODAY_API_URL))
             val_condition = tree.xpath("//VW/section/station[@name='" + self._forecast_region_name + "']/param[@name='vrijeme']/@value")[0]
             val_temp_min = tree.xpath("//VW/section/station[@name='" + self._forecast_region_name + "']/param[@name='Tmn']/@value")[0]
             val_temp_max = tree.xpath("//VW/section/station[@name='" + self._forecast_region_name + "']/param[@name='Tmx']/@value")[0]
@@ -312,7 +335,7 @@ class DhmzData:
             _LOGGER.debug("Refreshing forecast_daily - prognoza_sutra.xml")
             elems_tm = {}
             # get "prognoza_sutra.xml"
-            tree = etree.parse(urlopen(FORECAST_TOMORROW_API_URL))
+            tree = etree.parse(_urlopen(FORECAST_TOMORROW_API_URL))
             val_condition = tree.xpath("//VW/section/station[@name='" + self._forecast_region_name + "']/param[@name='vrijeme']/@value")[0]
             val_temp_min = tree.xpath("//VW/section/station[@name='" + self._forecast_region_name + "']/param[@name='Tmn']/@value")[0]
             val_temp_max = tree.xpath("//VW/section/station[@name='" + self._forecast_region_name + "']/param[@name='Tmx']/@value")[0]
@@ -349,7 +372,7 @@ class DhmzData:
             ret = []
             _LOGGER.debug("Refreshing forecast_hourly -7d_graf_i_simboli.xml")
             # get forecast weather "7d_graf_i_simboli.xml"
-            tree = etree.parse(urlopen(FORECAST_7DAYS_API_URL))
+            tree = etree.parse(_urlopen(FORECAST_7DAYS_API_URL))
             node_days = tree.xpath("//sedamdana/grad[@code='" + self._forecast_station_name + "']/*")
             for node in node_days:
                 elems = {}
@@ -431,7 +454,7 @@ def get_dhmz_stations():
     """Return {CONF_STATION: (lat, lon)} for all stations, for auto-config."""
 
     stations={}
-    tree = etree.parse(urlopen(CURRENT_SITUATION_API_URL))
+    tree = etree.parse(_urlopen(CURRENT_SITUATION_API_URL))
     elems = tree.xpath("//Hrvatska/Grad")
     for elem in elems:
         ime = elem.xpath("GradIme")[0]
